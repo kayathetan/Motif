@@ -6,12 +6,15 @@
 # psycopg connection rather than reusing embeddings.py / retrieval.py.
 
 import os
+from pathlib import Path
 
 import psycopg
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
+# See the same note in youtube_fetcher.py - load_dotenv() with no args
+# never finds backend/.env from here.
+load_dotenv(Path(__file__).resolve().parent.parent / "backend" / ".env")
 
 client = OpenAI()
 

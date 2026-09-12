@@ -3,12 +3,17 @@
 
 import os
 import re
+from pathlib import Path
 
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 
-load_dotenv()
+# load_dotenv() with no args searches upward from the current working
+# directory, which never reaches backend/.env - it's a sibling of
+# pipeline/, not a parent. Point at it explicitly (confirmed live: this
+# raised KeyError on YOUTUBE_API_KEY when run from the repo root).
+load_dotenv(Path(__file__).resolve().parent.parent / "backend" / ".env")
 
 # Words that carry no content, so they don't count as the hook landing.
 # "so", "basically", "okay" are the classic YouTube throat-clearing openers.

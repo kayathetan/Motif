@@ -108,15 +108,21 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
         for cta, count in cta_counts.most_common(TOP_CTA_TYPES_LIMIT)
     ]
 
+    # Postgres numeric columns (hook_delivery_seconds, payoff_seconds,
+    # cta_placement_percent) come back from psycopg as Decimal, not float.
+    # structural_benchmark is a plain dict (not a typed model), so nothing
+    # coerces that for us the way NicheIntelligenceResponse's typed float
+    # fields do - confirmed live: without float() here, these serialise as
+    # JSON strings ("1.2") instead of numbers (1.2).
     structural_benchmark = {
         "hook_under_seconds": round(
-            max(p["hook_delivery_seconds"] for p in patterns), 1
+            float(max(p["hook_delivery_seconds"] for p in patterns)), 1
         ),
         "payoff_before_seconds": round(
-            sum(p["payoff_seconds"] for p in patterns) / total, 1
+            float(sum(p["payoff_seconds"] for p in patterns)) / total, 1
         ),
         "cta_after_percent": round(
-            sum(p["cta_placement_percent"] for p in patterns) / total, 1
+            float(sum(p["cta_placement_percent"] for p in patterns)) / total, 1
         ),
     }
 

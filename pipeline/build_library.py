@@ -5,10 +5,12 @@
 #
 # Run from the repo root:  python -m pipeline.build_library
 # Needs OPENAI_API_KEY, YOUTUBE_API_KEY and DATABASE_URL (see
-# backend/.env.example), plus ffmpeg on PATH for frame extraction.
+# backend/.env.example). No system ffmpeg needed - video_processor.py uses
+# imageio-ffmpeg's bundled binary.
 
 import json
 import logging
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -29,7 +31,7 @@ logging.basicConfig(
 log = logging.getLogger("build_library")
 
 
-def _frames_for(video_url: str, duration_seconds: float) -> list[str]:
+def _frames_for(video_url: str, duration_seconds: float) -> tuple[list[str], str | None]:
     """
     Download the video and pull representative frames.
 
@@ -38,16 +40,26 @@ def _frames_for(video_url: str, duration_seconds: float) -> list[str]:
     still worth keeping: transcript and computed signals carry the structural
     fields, and the extractor can work from an empty frame list.
 
+    Returns a (frame_paths, work_dir) pair rather than using
+    tempfile.TemporaryDirectory() as a context manager here: that would
+    delete the directory - and the frame files this function just
+    returned - the instant this function returns, before process_video()'s
+    later extract_pattern() call ever gets to read them (confirmed live:
+    FileNotFoundError on every frame). The caller owns cleanup instead, via
+    the returned work_dir, once it's actually done with the frames.
+
     Returns:
-        Frame paths, or an empty list if extraction was not possible.
+        (frame_paths, work_dir). frame_paths is empty and work_dir is None
+        if extraction was not possible - nothing left to clean up.
     """
+    work_dir = tempfile.mkdtemp()
     try:
-        with tempfile.TemporaryDirectory() as work_dir:
-            video_path = download_video(video_url, work_dir)
-            return extract_frames(video_path, duration_seconds, work_dir) or []
+        video_path = download_video(video_url, work_dir)
+        return extract_frames(video_path, duration_seconds, work_dir) or [], work_dir
     except Exception as exc:  # noqa: BLE001 - frames are a nice-to-have
         log.warning("  frames unavailable (%s: %s)", type(exc).__name__, exc)
-        return []
+        shutil.rmtree(work_dir, ignore_errors=True)
+        return [], None
 
 
 def process_video(video_url: str, niche: str, platform: str) -> None:
@@ -77,9 +89,13 @@ def process_video(video_url: str, niche: str, platform: str) -> None:
         signals["words_per_minute_last_third"],
     )
 
-    frame_paths = _frames_for(video_url, metadata["duration_seconds"])
+    frame_paths, work_dir = _frames_for(video_url, metadata["duration_seconds"])
+    try:
+        pattern = extract_pattern(metadata, transcript, signals, frame_paths)
+    finally:
+        if work_dir:
+            shutil.rmtree(work_dir, ignore_errors=True)
 
-    pattern = extract_pattern(metadata, transcript, signals, frame_paths)
     if not pattern:
         raise RuntimeError("extract_pattern returned nothing")
 
