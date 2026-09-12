@@ -1,6 +1,6 @@
 # Pydantic request/response models shared across routers and services.
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Literal
 
 
@@ -18,7 +18,7 @@ class ScriptBeat(BaseModel):
 
 
 class BriefResponse(BaseModel):
-    hook_options: list[str]  # 3 specific opening lines
+    hook_options: list[str] = Field(min_length=3, max_length=3)  # 3 specific opening lines
     # Named content_format, not format: a field literally named "format"
     # is unreliable under OpenAI's structured outputs - confirmed by direct
     # testing to return garbage (e.g. the schema's own class name) in most
