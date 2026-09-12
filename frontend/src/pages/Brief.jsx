@@ -105,9 +105,9 @@ const HOOKS = [
 ]
 
 const REFS = [
-  { grad: 'linear-gradient(140deg,#F79BBA,#C81E63)', title: '"I stopped using everything except one thing"', meta: '0:44 · 412K views · 9.1K shares', match: '94% structure match' },
+  { grad: 'linear-gradient(140deg,#C4B5FD,#6D28D9)', title: '"I stopped using everything except one thing"', meta: '0:44 · 412K views · 9.1K shares', match: '94% structure match' },
   { grad: 'linear-gradient(140deg,#F7DDAF,#E0431A)', title: '"three weeks, one ingredient, no filter"', meta: '0:41 · 288K views · 6.4K shares', match: '91% structure match' },
-  { grad: 'linear-gradient(140deg,#E8447F,#7E1416)', title: '"the cheap one was the good one"', meta: '0:47 · 176K views · 5.2K shares', match: '88% structure match' }
+  { grad: 'linear-gradient(140deg,#8B5CF6,#4C1D95)', title: '"the cheap one was the good one"', meta: '0:47 · 176K views · 5.2K shares', match: '88% structure match' }
 ]
 
 const Thirds = () => (
@@ -134,10 +134,10 @@ export default function Brief() {
         variant="app"
         action={{ to: '/upload', label: 'Audit a draft' }}
         links={[
+          { label: 'Market', to: '/market' },
           { label: 'Brief', to: '/brief', on: true },
           { label: 'Analyse', to: '/upload' },
-          { label: 'Inputs', to: '/inputs' },
-          { label: 'Direction', to: '/choose' }
+          { label: 'Inputs', to: '/inputs' }
         ]}
       />
 
@@ -191,10 +191,10 @@ export default function Brief() {
               <h4>Curiosity → surprise → belonging</h4>
               <div className="arcwrap">
                 <svg width="100%" height="74" viewBox="0 0 340 74" preserveAspectRatio="none" aria-hidden="true">
-                  <polyline points="14,58 96,44 178,14 260,26 326,20" fill="none" stroke="#C81E63" strokeWidth="2.4" strokeLinejoin="round" />
-                  <circle cx="14" cy="58" r="5.5" fill="#C81E63" />
-                  <circle cx="178" cy="14" r="5.5" fill="#C81E63" />
-                  <circle cx="326" cy="20" r="5.5" fill="#C81E63" />
+                  <polyline points="14,58 96,44 178,14 260,26 326,20" fill="none" stroke="#7C3AED" strokeWidth="2.4" strokeLinejoin="round" />
+                  <circle cx="14" cy="58" r="5.5" fill="#7C3AED" />
+                  <circle cx="178" cy="14" r="5.5" fill="#7C3AED" />
+                  <circle cx="326" cy="20" r="5.5" fill="#7C3AED" />
                 </svg>
                 <div className="arclabels"><span>Curiosity</span><span>Surprise</span><span>Belonging</span></div>
               </div>
@@ -229,11 +229,11 @@ export default function Brief() {
               <h4>Mixed, anchored on a talking head</h4>
               <div className="arcwrap">
                 <svg width="100%" height="74" viewBox="0 0 340 74" preserveAspectRatio="none" aria-hidden="true">
-                  <rect x="0" y="26" width="15" height="26" fill="#C81E63" />
-                  <rect x="15" y="26" width="59" height="26" fill="#E8447F" />
+                  <rect x="0" y="26" width="15" height="26" fill="#7C3AED" />
+                  <rect x="15" y="26" width="59" height="26" fill="#8B5CF6" />
                   <rect x="74" y="26" width="151" height="26" fill="#F59E3C" />
                   <rect x="225" y="26" width="75" height="26" fill="#E0431A" />
-                  <rect x="300" y="26" width="40" height="26" fill="#E8447F" />
+                  <rect x="300" y="26" width="40" height="26" fill="#8B5CF6" />
                 </svg>
                 <div className="arclabels"><span>Head</span><span>B-roll VO</span><span>Head</span></div>
               </div>

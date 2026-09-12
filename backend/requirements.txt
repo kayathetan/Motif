@@ -2,8 +2,9 @@ fastapi
 uvicorn[standard]
 pydantic
 python-dotenv
-openai
-chromadb
+openai>=1.40.0
+psycopg[binary]
+pgvector
 yt-dlp
 ffmpeg-python
 youtube-transcript-api

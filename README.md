@@ -8,7 +8,7 @@ content briefs for marketing teams.
 
 - `frontend/` — React + Vite client
 - `backend/` — FastAPI server exposing brief generation and niche intelligence
-- `pipeline/` — standalone scripts that build the ChromaDB pattern library
+- `pipeline/` — standalone scripts that build the Supabase (Postgres + pgvector) pattern library
 
 ## Running the frontend
 

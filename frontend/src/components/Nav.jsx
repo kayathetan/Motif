@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Show, UserButton, useUser } from '@clerk/react'
 
 /**
  * Top bar. `variant` decides what sits on the right:
@@ -7,6 +8,9 @@ import { Link } from 'react-router-dom'
  *   app        the signed-in user chip, plus an optional action
  */
 export default function Nav({ variant = 'marketing', links = [], action = null }) {
+  const { user } = useUser()
+  const label = user?.firstName || user?.primaryEmailAddress?.emailAddress || 'Account'
+
   return (
     <div className="nav">
       <Link className="brand" to="/"><span className="mk" />Motif</Link>
@@ -22,15 +26,21 @@ export default function Nav({ variant = 'marketing', links = [], action = null }
       <div className="nav-right">
         {variant === 'marketing' && (
           <>
-            <Link className="btn-ghost" to="/signup">Log in</Link>
-            <Link className="btn-dark" to="/signup">Book a demo</Link>
+            <Show when="signed-out">
+              <Link className="btn-ghost" to="/signin">Log in</Link>
+              <Link className="btn-dark" to="/signup">Get started</Link>
+            </Show>
+            <Show when="signed-in">
+              <Link className="btn-ghost" to="/market">Dashboard</Link>
+              <UserButton afterSignOutUrl="/" />
+            </Show>
           </>
         )}
         {variant === 'back' && <Link className="btn-ghost" to="/">Back</Link>}
         {variant === 'app' && (
           <>
-            <span className="user"><span className="av">DU</span>demo user <span className="tick">✓</span></span>
             {action && <Link className="btn-dark" to={action.to}>{action.label}</Link>}
+            <span className="user"><UserButton afterSignOutUrl="/" />{label}</span>
           </>
         )}
       </div>

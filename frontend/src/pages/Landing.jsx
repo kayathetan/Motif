@@ -1,24 +1,24 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Mesh from '../components/Mesh.jsx'
+import ShaderBackground from '../components/ShaderBackground.jsx'
 import Nav from '../components/Nav.jsx'
 import { useBrief } from '../store.jsx'
 
 const product = [
   {
-    kicker: 'Pre-production',
-    title: 'A brief a creator can shoot from',
-    body: <>Hook options, a timestamped script outline, emotional arc, pacing, lighting, shot, on-screen text and the approved CTA line. <b>A production document, not advice.</b></>
+    kicker: 'Market research',
+    title: 'What your category\u2019s attention costs',
+    body: <>Volume, growth, saturation, your share of voice, and the clearing price of a thousand views organic against paid. <b>A market report, not a trend list.</b></>
   },
   {
-    kicker: 'Post-production',
-    title: 'A scored audit of the draft',
-    body: <>Where pacing diverges from what performs, ranked by impact. <b>Your hook lands at 6.4s; the top quartile lands under 2.</b> With the correction attached.</>
+    kicker: 'Production',
+    title: 'A brief your team can execute',
+    body: <>Hook options, a timestamped outline, pacing, lighting, shot and the approved CTA line, all derived from what the category measurably rewards. <b>A production document, not advice.</b></>
   },
   {
-    kicker: 'Underneath both',
-    title: 'A category pattern library',
-    body: <>Top-performing content per category, decoded into structure rather than restated as generic advice. <b>Derived from transcript timing, refreshed daily.</b></>
+    kicker: 'Assurance',
+    title: 'A scored audit before you spend',
+    body: <>Where a draft diverges from what performs, ranked by impact. <b>Your hook lands at 6.4s; the market rewards under 2.</b> Caught before the media budget goes near it.</>
   }
 ]
 
@@ -60,9 +60,13 @@ export default function Landing() {
 
   return (
     <>
-      <Mesh tall />
+      <div className="shaderhero" aria-hidden="true">
+        <ShaderBackground />
+        <div className="shaderhero-fade" />
+      </div>
       <Nav
         links={[
+          { label: 'Market', to: '/market' },
           { label: 'Product', href: '#product' },
           { label: 'For teams', href: '#teams' },
           { label: 'How it works', href: '#how' },
@@ -71,12 +75,12 @@ export default function Landing() {
       />
 
       <div className="hero">
-        <p className="kick">Structural intelligence for short-form video</p>
-        <h1>Structure is the variable<br />you can control.</h1>
+        <p className="kick">Market intelligence for short-form attention</p>
+        <h1>Attention is a market.<br />Enter it with research.</h1>
         <p className="sub">
-          Creative is a judgement call. Structure is measurable. Motif decodes the <b>structural patterns</b> behind
-          top-performing content in your category, hook timing, reveal order, pacing and payoff placement, then issues a
-          production brief before the shoot and a scored audit after it.
+          Short-form video is where your category&apos;s attention gets priced. Motif measures what that market
+          rewards structurally, benchmarks your output against it, and issues production briefs your team can execute.{' '}
+          <b>Research first, creative second.</b>
         </p>
 
         <form className="heroform" onSubmit={submit}>
@@ -84,24 +88,52 @@ export default function Landing() {
             <input
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
-              placeholder="Which category does your brand publish in?"
+              placeholder="Which category does your business compete in?"
               aria-label="Your category"
             />
-            <button className="btn-pink" type="submit">Run a brief</button>
+            <button className="btn-primary" type="submit">Run a brief</button>
           </div>
-          <p className="under">Pattern library · 142 skincare · 96 fitness · 210 finance · refreshed daily</p>
+          <p className="under">Live market data across 38 categories · refreshed daily</p>
         </form>
 
         <div className="pills" style={{ marginTop: 34 }}>
-          <span className="pill">No creative guesswork</span>
-          <span className="pill">Benchmarked per category</span>
-          <span className="pill">Briefs your creators can shoot from</span>
+          <span className="pill">Category benchmarks</span>
+          <span className="pill">Cost of attention</span>
+          <span className="pill">Share of voice</span>
+          <span className="pill">Briefs your team can execute</span>
         </div>
       </div>
 
       <div className="wrap">
+        {/* hard numbers first: the feedback was that it read as a marketing
+            helper rather than something with a business case */}
+        <div className="sec" style={{ marginTop: 56 }}>
+          <div className="statrow">
+            <div className="card stat">
+              <p className="sl">Attention measured · 30d</p>
+              <p className="sv">4.9<span className="su">B views</span></p>
+              <p className="sn">Across <b>38 categories</b> on Reels, TikTok and Shorts.</p>
+            </div>
+            <div className="card stat">
+              <p className="sl">Organic vs paid, per 1,000 views</p>
+              <p className="sv">6.1<span className="su">x spread</span></p>
+              <p className="sn"><b>$2.40 organic against $14.60 paid.</b> Structure decides which one you pay.</p>
+            </div>
+            <div className="card stat">
+              <p className="sl">Median hit rate before Motif</p>
+              <p className="sv">1<span className="su">in 9 posts</span></p>
+              <p className="sn">Most published content never clears its category&apos;s median. <b>That is the waste.</b></p>
+            </div>
+            <div className="card stat">
+              <p className="sl">Time to a shootable brief</p>
+              <p className="sv">20<span className="su">seconds</span></p>
+              <p className="sn">Against <b>days of strategist time</b> per campaign.</p>
+            </div>
+          </div>
+        </div>
+
         <div className="sec" id="product">
-          <h2>Your team supplies the idea. Motif supplies the structure.</h2>
+          <h2>Three things a content programme cannot currently buy.</h2>
           <div className="three">
             {product.map((c) => (
               <div className="card fc" key={c.title}>
@@ -143,7 +175,7 @@ export default function Landing() {
 
         <div className="sec">
           <div className="card tc" style={{ textAlign: 'center', padding: '56px 40px' }}>
-            <p className="tl" style={{ color: 'var(--pink-deep)' }}>Get started</p>
+            <p className="tl" style={{ color: 'var(--purple-deep)' }}>Get started</p>
             <h4 style={{ fontSize: 36, letterSpacing: '-.04em', marginTop: 14 }}>
               See what your category is actually doing.
             </h4>
@@ -151,7 +183,7 @@ export default function Landing() {
               Create a demo workspace and run one brief against your own category. No card required, nothing stored.
             </p>
             <p style={{ marginTop: 28 }}>
-              <Link className="btn-pink" to="/signup">Create a demo workspace →</Link>
+              <Link className="btn-primary" to="/signup">Create a demo workspace →</Link>
             </p>
           </div>
         </div>
