@@ -334,7 +334,7 @@ const UNIFORMS = {
   cursorStrength: 0.65,
   cursorRadius: 0.46,
   oklab: 1.0,          // perceptual mixing: purple->orange without muddy midtones
-  timeScale: 0.94,     // 1.7x the previous 0.55
+  timeScale: 1.41,     // 1.5x the previous 0.94
 }
 
 const pendingContextReleases = new WeakMap()
