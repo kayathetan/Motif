@@ -7,5 +7,6 @@ psycopg[binary]
 pgvector
 yt-dlp
 ffmpeg-python
+imageio-ffmpeg
 youtube-transcript-api
 google-api-python-client
