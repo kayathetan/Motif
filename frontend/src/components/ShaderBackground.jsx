@@ -6,9 +6,14 @@
 //   <div className="shaderhero"><ShaderBackground /><div className="shaderhero-fade" /></div>
 //
 // Colours in UNIFORMS.colors are the brand tokens, normalised to 0..1:
-//   #6D28D9 purple-deep · #8B5CF6 purple · #E0431A blood orange
-//   #F59E3C amber · #FBFAFC ground
-// Slots 6-8 repeat the ground colour; the shader only reads `colorCount`.
+//   #4C1D95 · #6D28D9 · #8B5CF6 · #C4B5FD · #FBFAFC ground
+//
+// The shader is deliberately single-hue. Its blobs sum and blend wherever
+// they overlap, and the midpoint of violet and orange is rose - so any
+// purple + orange gradient produces pink by arithmetic, not by mistake.
+// Orange lives everywhere else in the identity (buttons, labels, the pacing
+// marks, the inner-page mesh); the hero carries the violet end alone.
+// Remaining slots repeat the ground colour; the shader reads `colorCount`.
 
 import { useEffect, useRef } from "react"
 
@@ -292,24 +297,24 @@ void main() {
 const UNIFORMS = {
   // Motif palette: purple-deep, purple, blood orange, amber, ground.
   colors: [
-    [0.4274509803921568, 0.1568627450980392, 0.8509803921568627], // #6D28D9
-    [0.5450980392156862, 0.3607843137254902, 0.9647058823529412], // #8B5CF6
-    [0.8784313725490196, 0.2627450980392157, 0.1019607843137255], // #E0431A
-    [0.9607843137254902, 0.6196078431372549, 0.2352941176470588], // #F59E3C
-    [0.9843137254901960, 0.9803921568627451, 0.9882352941176471], // #FBFAFC
+    [0.2980392156862745, 0.1137254901960784, 0.5843137254901961], // #4C1D95 purple-ink
+    [0.4274509803921568, 0.1568627450980392, 0.8509803921568627], // #6D28D9 purple-deep
+    [0.5450980392156862, 0.3607843137254902, 0.9647058823529412], // #8B5CF6 purple
+    [0.7686274509803922, 0.7098039215686275, 0.9921568627450981], // #C4B5FD purple-soft
+    [0.9843137254901960, 0.9803921568627451, 0.9882352941176471], // #FBFAFC ground
     [0.9843137254901960, 0.9803921568627451, 0.9882352941176471],
     [0.9843137254901960, 0.9803921568627451, 0.9882352941176471],
     [0.9843137254901960, 0.9803921568627451, 0.9882352941176471],
   ],
   colorCount: 5,
   scale: 1.05,
-  intensity: 0.42,
+  intensity: 0.54,
   paramA: 0.5,
   warp: 0.0,
   detail: 2.4,
   contrast: 1.02,      // softened: full contrast reads harsh on a light page
   brightness: 0.06,    // lifted so it sits on the off-white ground
-  saturation: 0.92,    // pulled back a touch to stay on the professional side
+  saturation: 0.95,    // restrained, and keeps blends off the rose axis
   hue: 0.0,
   vignette: 0.0,
   blur: 0.0,
@@ -318,13 +323,13 @@ const UNIFORMS = {
   rotate: 0.0,
   offsetX: 0.0,
   offsetY: 0.0,
-  drift: 0.05,         // gentle wander
+  drift: 0.14,         // visible wander
   cursorEnabled: false,
   cursorEffect: 2.0,
   cursorStrength: 0.65,
   cursorRadius: 0.46,
   oklab: 1.0,          // perceptual mixing: purple->orange without muddy midtones
-  timeScale: 0.26,     // slow. Fast drift reads as a gimmick on a B2B landing
+  timeScale: 0.55,     // visible but unhurried
 }
 
 const pendingContextReleases = new WeakMap()
