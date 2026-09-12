@@ -1,36 +1,58 @@
-# ChromaDB client setup and vector search over stored content patterns.
-# Persists to backend/chroma_db/, collection name "content_patterns".
+# Supabase (Postgres + pgvector) connection and vector search over stored
+# content patterns. Table: "patterns" (see backend/sql/schema.sql).
 
-import chromadb
+import os
 
-CHROMA_PATH = "backend/chroma_db"
-COLLECTION_NAME = "content_patterns"
+import psycopg
+from dotenv import load_dotenv
+from pgvector.psycopg import register_vector
+from psycopg.rows import dict_row
+
+from src.services.embeddings import generate_embedding
+
+load_dotenv()
 
 
-def get_collection():
+def get_connection() -> psycopg.Connection:
     """
-    Initialise (or connect to) the persistent ChromaDB client and return
-    the "content_patterns" collection.
+    Open a new connection to the Supabase Postgres database, with the
+    pgvector type adapter registered and dict-style row results enabled.
 
     Returns:
-        A ChromaDB Collection instance.
+        An open psycopg Connection. Use as a context manager
+        (`with get_connection() as conn:`) so it's closed automatically.
     """
-    pass
+    database_url = os.environ["DATABASE_URL"]
+    conn = psycopg.connect(database_url, row_factory=dict_row)
+    register_vector(conn)
+    return conn
 
 
 def query_similar_patterns(query: str, n_results: int = 6) -> list[dict]:
     """
     Embed the query string and return the top N most similar patterns
-    stored in ChromaDB.
+    stored in Supabase, ranked by cosine distance (closest first).
 
     Args:
         query: Natural language description of the desired content.
         n_results: Number of top matches to return.
 
     Returns:
-        A list of pattern records (documents + metadata) ranked by similarity.
+        A list of pattern rows (dicts).
     """
-    pass
+    embedding = generate_embedding(query)
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                select *
+                from patterns
+                order by embedding <=> %s
+                limit %s
+                """,
+                (embedding, n_results),
+            )
+            return cur.fetchall()
 
 
 def get_patterns_by_niche_platform(niche: str, platform: str) -> list[dict]:
@@ -43,6 +65,12 @@ def get_patterns_by_niche_platform(niche: str, platform: str) -> list[dict]:
         platform: One of "tiktok", "reels", "youtube_shorts".
 
     Returns:
-        A list of matching pattern records (documents + metadata).
+        A list of matching pattern rows (dicts).
     """
-    pass
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "select * from patterns where niche = %s and platform = %s",
+                (niche, platform),
+            )
+            return cur.fetchall()
