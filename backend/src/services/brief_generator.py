@@ -1,13 +1,4 @@
-# src/services/brief_generator.py
-#
 # Synthesises a structured, production-ready content brief from retrieved
-# structural patterns using OpenAI Structured Outputs.
-
-import json
-import os
-from typing import Any
-
-from openai import OpenAI
 # structural patterns using GPT-4o structured JSON output.
 #
 # Structured output convention (applies to every GPT-4o call in this
@@ -15,8 +6,6 @@ from openai import OpenAI
 # built from the Pydantic response model's own schema, then validate the
 # returned JSON back into that model, e.g.
 #
-#   from openai import OpenAI
-#   client = OpenAI()
 #   response = client.responses.create(
 #       model="gpt-4o",
 #       input=[...],
@@ -39,8 +28,16 @@ from openai import OpenAI
 # fixtures in sample_patterns.py:
 #   from src.services.sample_patterns import SAMPLE_PATTERNS
 
+import json
+import os
+from typing import Any
+
+from dotenv import load_dotenv
+from openai import OpenAI
+
 from src.models.schemas import BriefRequest, BriefResponse
 
+load_dotenv()
 
 # Initialise once rather than recreating the client for every request.
 client = OpenAI(
@@ -104,7 +101,7 @@ A strong brief should tell the creator:
 
 def _serialise_pattern(pattern: dict[str, Any]) -> dict[str, Any]:
     """
-    Keep only useful fields before passing retrieved ChromaDB records
+    Keep only useful fields before passing retrieved Supabase rows
     to the synthesis model.
 
     This reduces tokens and prevents irrelevant database metadata from
@@ -112,25 +109,23 @@ def _serialise_pattern(pattern: dict[str, Any]) -> dict[str, Any]:
     """
 
     useful_fields = {
-        # Source / retrieval evidence
-        "video_id",
+        # Source / retrieval evidence (see backend/sql/schema.sql)
+        "video_url",
         "title",
         "views",
         "likes",
-        "duration",
-        "similarity",
-        "distance",
-        "retrieval_score",
+        "duration_seconds",
+        "distance",  # cosine distance from retrieval.query_similar_patterns
 
         # Classification
         "niche",
         "platform",
 
-        # Structural pattern
+        # Structural pattern (see models.schemas.Pattern)
         "hook_style",
         "hook_text",
         "hook_delivery_seconds",
-        "first_payoff_seconds",
+        "payoff_seconds",
         "visual_format",
         "scene_change_frequency",
         "on_screen_text",
@@ -141,10 +136,6 @@ def _serialise_pattern(pattern: dict[str, Any]) -> dict[str, Any]:
         "pacing",
         "emotional_trigger",
         "success_factors",
-
-        # Any useful aggregate / derived signals
-        "words_per_minute",
-        "structural_signals",
     }
 
     cleaned = {
@@ -181,12 +172,6 @@ def generate_brief(
         retrieve -> synthesise -> validate -> return
 
     Args:
-        patterns:
-            Top-N structural pattern records retrieved from ChromaDB.
-
-        request:
-            User inputs such as niche, platform, goal, audience,
-            and brand vibe.
         patterns: Top-N retrieved pattern records (see Pattern schema shape),
             fetched by services/retrieval.py from Supabase/pgvector.
         request: The user's brief request parameters.
