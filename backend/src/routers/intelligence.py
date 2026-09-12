@@ -2,9 +2,11 @@
 # Fetches all stored patterns for the given niche/platform and returns
 # an aggregated NicheIntelligenceResponse.
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from src.models.schemas import NicheIntelligenceResponse
+from src.services.intelligence_aggregator import aggregate_intelligence
+from src.services.retrieval import get_patterns_by_niche_platform
 
 router = APIRouter()
 
@@ -21,4 +23,10 @@ async def get_niche_intelligence(niche: str, platform: str) -> NicheIntelligence
     Returns:
         A structured NicheIntelligenceResponse.
     """
-    pass
+    patterns = get_patterns_by_niche_platform(niche, platform)
+    if not patterns:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No patterns found for niche='{niche}', platform='{platform}'.",
+        )
+    return aggregate_intelligence(patterns)

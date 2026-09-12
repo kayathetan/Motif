@@ -1,6 +1,14 @@
 -- Motif: patterns table schema for Supabase (Postgres + pgvector).
 -- Run this once in the Supabase SQL Editor (Database -> SQL Editor -> New query).
 -- Safe to re-run: every statement is idempotent (if not exists / or replace).
+--
+-- psycopg gotcha: when inserting/querying the `embedding` column from
+-- Python, cast the parameter explicitly, e.g. `%s::vector`. Without numpy
+-- installed, pgvector's register_vector() doesn't reliably adapt a plain
+-- Python list to `vector`, and it silently falls back to a
+-- `double precision[]` array, which has no <=> operator against `vector`.
+-- Applies anywhere embeddings are bound as query parameters, including
+-- pipeline/store_patterns.py.
 
 create extension if not exists vector;
 
@@ -28,6 +36,8 @@ create table if not exists patterns (
     on_screen_text boolean not null,
     camera_style text not null,
     reveal_order text not null,
+    payoff_seconds numeric not null,
+    cta_type text not null,
     cta_placement_percent numeric not null,
     pacing text not null,
     emotional_trigger text not null,

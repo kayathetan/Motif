@@ -47,7 +47,7 @@ def query_similar_patterns(query: str, n_results: int = 6) -> list[dict]:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                select *, embedding <=> %s as distance
+                select *, embedding <=> %s::vector as distance
                 from patterns
                 order by distance
                 limit %s

@@ -2,8 +2,19 @@
 # router registration.
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from src.routers import brief, intelligence
 
 app = FastAPI(title="Motif Content Intelligence API")
 
-# TODO (Step 6): configure CORS middleware
-# TODO (Step 6): register brief and intelligence routers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(brief.router)
+app.include_router(intelligence.router)
