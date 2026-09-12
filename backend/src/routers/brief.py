@@ -23,7 +23,7 @@ MOCK_BRIEF_RESPONSE = BriefResponse(
         "This is the only ab exercise you actually need.",
         "30 days of this and my energy completely changed.",
     ],
-    format="talking head + b-roll cutaways",
+    content_format="talking head + b-roll cutaways",
     script_outline=[
         {"timestamp": "0-3s", "action": "Deliver the hook direct to camera, bold on-screen text reinforcing it."},
         {"timestamp": "3-10s", "action": "Demonstrate the technique/claim with quick cutaways."},

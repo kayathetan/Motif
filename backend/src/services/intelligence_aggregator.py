@@ -1,8 +1,9 @@
 # Aggregates stored patterns for a niche/platform into a market intelligence
 # report: code-computed statistics plus one LLM call for qualitative synthesis.
 #
-# Structured output convention: OpenAI Responses API + strict json_schema
-# (see brief_generator.py's header comment for the full convention).
+# Structured output convention: client.responses.parse(text_format=Model)
+# (see brief_generator.py's header comment for the full convention and why
+# hand-building the schema via .create() 400s).
 
 import os
 from collections import Counter
@@ -50,7 +51,7 @@ def _synthesise_trends(success_factors: list[str]) -> _TrendSynthesis:
     Single LLM call: given all success_factors pooled across retrieved
     patterns, synthesise whats_winning / whats_saturated summaries.
     """
-    response = client.responses.create(
+    response = client.responses.parse(
         model=AGGREGATOR_MODEL,
         input=[
             {"role": "developer", "content": SYSTEM_PROMPT},
@@ -60,16 +61,11 @@ def _synthesise_trends(success_factors: list[str]) -> _TrendSynthesis:
                 + "\n".join(f"- {factor}" for factor in success_factors),
             },
         ],
-        text={
-            "format": {
-                "type": "json_schema",
-                "name": "trend_synthesis",
-                "strict": True,
-                "schema": _TrendSynthesis.model_json_schema(),
-            }
-        },
+        text_format=_TrendSynthesis,
     )
-    return _TrendSynthesis.model_validate_json(response.output_text)
+    if response.output_parsed is None:
+        raise RuntimeError("Model returned no parseable trend synthesis.")
+    return response.output_parsed
 
 
 def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:

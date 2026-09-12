@@ -2,27 +2,29 @@
 # structural patterns using GPT-4o structured JSON output.
 #
 # Structured output convention (applies to every GPT-4o call in this
-# project): use the OpenAI Responses API with a strict json_schema format,
-# built from the Pydantic response model's own schema, then validate the
-# returned JSON back into that model, e.g.
+# project): use the OpenAI Responses API's client.responses.parse() with
+# text_format=<PydanticModel>, e.g.
 #
-#   response = client.responses.create(
+#   response = client.responses.parse(
 #       model="gpt-4o",
 #       input=[...],
-#       text={
-#           "format": {
-#               "type": "json_schema",
-#               "name": "content_brief",
-#               "strict": True,
-#               "schema": BriefResponse.model_json_schema(),
-#           }
-#       },
+#       text_format=BriefResponse,
 #   )
-#   brief = BriefResponse.model_validate_json(response.output_text)
+#   brief = response.output_parsed
 #
-# This guarantees the output matches BriefResponse exactly. Use this same
-# pattern in intelligence_aggregator.py and pipeline/pattern_extractor.py
-# for consistency.
+# Do NOT hand-build the schema via client.responses.create(text={"format":
+# {"type": "json_schema", "schema": Model.model_json_schema(), "strict":
+# True}}) - Pydantic's plain model_json_schema() doesn't set
+# additionalProperties: false anywhere, which OpenAI's strict mode requires
+# at every object level, so that path 400s every time. .parse() builds a
+# fully strict-compliant schema from the model automatically and returns an
+# already-validated instance via response.output_parsed.
+#
+# Every response model used this way needs a properly typed schema - no
+# bare `dict`/`list[dict]` fields (see ScriptBeat in schemas.py for why).
+#
+# Use this same .parse() pattern in intelligence_aggregator.py and
+# pipeline/pattern_extractor.py for consistency.
 #
 # For local development/testing without live Supabase retrieval, use the
 # fixtures in sample_patterns.py:
@@ -207,7 +209,7 @@ INPUT DATA:
 """
 
     try:
-        response = client.responses.create(
+        response = client.responses.parse(
             model=BRIEF_MODEL,
             store=False,
             input=[
@@ -221,24 +223,13 @@ INPUT DATA:
                 },
             ],
             max_output_tokens=3000,
-            text={
-                "format": {
-                    "type": "json_schema",
-                    "name": "content_brief",
-                    "description": (
-                        "A production-ready content brief derived from "
-                        "retrieved high-performing structural patterns."
-                    ),
-                    "strict": True,
-                    "schema": BriefResponse.model_json_schema(),
-                }
-            },
+            text_format=BriefResponse,
         )
 
-        if not response.output_text:
-            raise RuntimeError("Model returned no brief.")
+        if response.output_parsed is None:
+            raise RuntimeError("Model returned no parseable brief.")
 
-        return BriefResponse.model_validate_json(response.output_text)
+        return response.output_parsed
 
     except Exception as exc:
         raise RuntimeError(

@@ -12,10 +12,19 @@ class BriefRequest(BaseModel):
     brand_vibe: Literal["fun", "educational", "aspirational", "raw"]
 
 
+class ScriptBeat(BaseModel):
+    timestamp: str  # e.g. "0-3s"
+    action: str
+
+
 class BriefResponse(BaseModel):
     hook_options: list[str]  # 3 specific opening lines
-    format: str
-    script_outline: list[dict]  # [{timestamp: "0-3s", action: "..."}]
+    # Named content_format, not format: a field literally named "format"
+    # is unreliable under OpenAI's structured outputs - confirmed by direct
+    # testing to return garbage (e.g. the schema's own class name) in most
+    # generations, purely because of the field name. See brief_generator.py.
+    content_format: str
+    script_outline: list[ScriptBeat]
     visual_style: str
     pacing: str
     audio_direction: str
