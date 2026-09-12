@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Show, UserButton, useUser } from '@clerk/react'
+import { isDemo, exitDemo } from '../demo.js'
 
 /**
  * Top bar. `variant` decides what sits on the right:
@@ -9,7 +10,10 @@ import { Show, UserButton, useUser } from '@clerk/react'
  */
 export default function Nav({ variant = 'marketing', links = [], action = null }) {
   const { user } = useUser()
+  const demo = isDemo()
   const label = user?.firstName || user?.primaryEmailAddress?.emailAddress || 'Account'
+
+  const leaveDemo = () => { exitDemo(); window.location.href = '/' }
 
   return (
     <div className="nav">
@@ -40,7 +44,14 @@ export default function Nav({ variant = 'marketing', links = [], action = null }
         {variant === 'app' && (
           <>
             {action && <Link className="btn-dark" to={action.to}>{action.label}</Link>}
-            <span className="user"><UserButton afterSignOutUrl="/" />{label}</span>
+            {demo ? (
+              <>
+                <span className="demopill">Demo</span>
+                <button className="btn-ghost" onClick={leaveDemo}>Exit</button>
+              </>
+            ) : (
+              <span className="user"><UserButton afterSignOutUrl="/" />{label}</span>
+            )}
           </>
         )}
       </div>

@@ -446,3 +446,10 @@ a{color:inherit;text-decoration:none}
 /* Clerk renders its own card; let it sit on our ground without a double frame */
 .authcard .cl-rootBox,.authcard .cl-card{box-shadow:none;background:transparent}
 .user .cl-userButtonAvatarBox{width:21px;height:21px}
+
+/* demo-mode badge: honest about what the visitor is looking at */
+.demopill{
+  font-size:12px;font-weight:510;letter-spacing:.01em;
+  color:var(--purple-deep);background:var(--accent-wash,#EFF0FB);
+  border:1px solid #DCDFF7;border-radius:999px;padding:5px 12px;
+}
