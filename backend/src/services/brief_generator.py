@@ -35,7 +35,7 @@ from typing import Any
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from src.models.schemas import BriefRequest, BriefResponse
+from src.models.schemas import BriefRequest, BriefResponse, Pattern
 
 load_dotenv()
 
@@ -101,51 +101,31 @@ A strong brief should tell the creator:
 
 def _serialise_pattern(pattern: dict[str, Any]) -> dict[str, Any]:
     """
-    Keep only useful fields before passing retrieved Supabase rows
-    to the synthesis model.
+    Keep only fields defined by the shared Pattern schema, plus retrieval
+    metadata added by the vector search layer.
 
-    This reduces tokens and prevents irrelevant database metadata from
-    distracting the model.
+    Using Pattern.model_fields keeps this service automatically aligned
+    with src/models/schemas.py.
     """
 
-    useful_fields = {
-        # Source / retrieval evidence (see backend/sql/schema.sql)
-        "video_url",
-        "title",
-        "views",
-        "likes",
-        "duration_seconds",
-        "distance",  # cosine distance from retrieval.query_similar_patterns
+    # All structural fields defined in the canonical Pattern schema.
+    pattern_fields = set(Pattern.model_fields.keys())
 
-        # Classification
-        "niche",
-        "platform",
-
-        # Structural pattern (see models.schemas.Pattern)
-        "hook_style",
-        "hook_text",
-        "hook_delivery_seconds",
-        "payoff_seconds",
-        "visual_format",
-        "scene_change_frequency",
-        "on_screen_text",
-        "camera_style",
-        "reveal_order",
-        "cta_type",
-        "cta_placement_percent",
-        "pacing",
-        "emotional_trigger",
-        "success_factors",
+    # Extra fields added during retrieval rather than stored in Pattern.
+    retrieval_fields = {
+        "distance",
+        "similarity",
+        "retrieval_score",
     }
 
-    cleaned = {
+    useful_fields = pattern_fields | retrieval_fields
+
+    return {
         key: value
         for key, value in pattern.items()
         if key in useful_fields and value is not None
     }
-
-    return cleaned
-
+    
 
 def _prepare_patterns(patterns: list[dict]) -> list[dict]:
     """
