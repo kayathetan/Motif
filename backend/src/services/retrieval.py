@@ -38,16 +38,18 @@ def query_similar_patterns(query: str, n_results: int = 6) -> list[dict]:
         n_results: Number of top matches to return.
 
     Returns:
-        A list of pattern rows (dicts).
+        A list of pattern rows (dicts), each including a `distance` field
+        (cosine distance, lower = more similar) so downstream LLM calls can
+        weight evidence by retrieval relevance.
     """
     embedding = generate_embedding(query)
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                select *
+                select *, embedding <=> %s as distance
                 from patterns
-                order by embedding <=> %s
+                order by distance
                 limit %s
                 """,
                 (embedding, n_results),
