@@ -74,7 +74,7 @@ export default function Upload() {
             </div>
 
             <div className="actions">
-              <button className="btn-pink" type="submit">Run audit →</button>
+              <button className="btn-primary" type="submit">Run audit →</button>
               <p className="alt">
                 Benchmarked against <b>142 {brief.niche} Reels</b>, top quartile by shares.
               </p>

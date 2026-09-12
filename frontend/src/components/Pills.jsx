@@ -9,7 +9,7 @@ export default function Pills({ brief, extra = null, left = false, editable = fa
       <span className="pill">audience <b>{brief.audience}</b></span>
       <span className="pill">objective <b>{brief.objectives.join(', ').toLowerCase()}</b></span>
       {extra && <span className="pill">{extra}</span>}
-      {editable && <Link className="pill" to="/inputs" style={{ color: 'var(--pink-deep)' }}>edit</Link>}
+      {editable && <Link className="pill" to="/inputs" style={{ color: 'var(--purple-deep)' }}>edit</Link>}
     </div>
   )
 }

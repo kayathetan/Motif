@@ -52,7 +52,7 @@ export default function Signup() {
             </div>
 
             <div className="actions">
-              <button className="btn-pink" type="submit">Continue →</button>
+              <button className="btn-primary" type="submit">Continue →</button>
               <p className="alt">Existing workspace? <Link to="/inputs">Skip to inputs</Link></p>
             </div>
           </form>

@@ -87,7 +87,7 @@ export default function Landing() {
               placeholder="Which category does your brand publish in?"
               aria-label="Your category"
             />
-            <button className="btn-pink" type="submit">Run a brief</button>
+            <button className="btn-primary" type="submit">Run a brief</button>
           </div>
           <p className="under">Pattern library · 142 skincare · 96 fitness · 210 finance · refreshed daily</p>
         </form>
@@ -143,7 +143,7 @@ export default function Landing() {
 
         <div className="sec">
           <div className="card tc" style={{ textAlign: 'center', padding: '56px 40px' }}>
-            <p className="tl" style={{ color: 'var(--pink-deep)' }}>Get started</p>
+            <p className="tl" style={{ color: 'var(--purple-deep)' }}>Get started</p>
             <h4 style={{ fontSize: 36, letterSpacing: '-.04em', marginTop: 14 }}>
               See what your category is actually doing.
             </h4>
@@ -151,7 +151,7 @@ export default function Landing() {
               Create a demo workspace and run one brief against your own category. No card required, nothing stored.
             </p>
             <p style={{ marginTop: 28 }}>
-              <Link className="btn-pink" to="/signup">Create a demo workspace →</Link>
+              <Link className="btn-primary" to="/signup">Create a demo workspace →</Link>
             </p>
           </div>
         </div>
