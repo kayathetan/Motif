@@ -6,6 +6,8 @@ venv/
 
 # Environment variables
 .env
+.env.*
+!.env.example
 
 # ChromaDB persistence
 backend/chroma_db/

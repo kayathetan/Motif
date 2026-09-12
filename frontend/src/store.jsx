@@ -9,7 +9,8 @@ import { createContext, useContext, useState } from 'react'
 const BriefContext = createContext(null)
 
 const initial = {
-  account: { name: 'Demo User', company: 'Acme Skincare', role: 'Social media manager' },
+  // company is still user-entered; name and email come from Clerk via useUser()
+  account: { company: 'Acme Skincare', role: 'Social media manager' },
   niche: 'skincare',
   platform: 'Instagram Reels',
   audience: 'women 18–24',

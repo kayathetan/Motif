@@ -3,6 +3,8 @@ import { BriefProvider } from './store.jsx'
 
 import Landing from './pages/Landing.jsx'
 import Signup from './pages/Signup.jsx'
+import SignInPage from './pages/SignIn.jsx'
+import Protected from './components/Protected.jsx'
 import Inputs from './pages/Inputs.jsx'
 import Choose from './pages/Choose.jsx'
 import Vision from './pages/Vision.jsx'
@@ -17,13 +19,16 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/inputs" element={<Inputs />} />
-        <Route path="/choose" element={<Choose />} />
-        <Route path="/vision" element={<Vision />} />
-        <Route path="/upload" element={<Upload />} />
-        <Route path="/market" element={<Market />} />
-        <Route path="/brief" element={<Brief />} />
-        <Route path="/analyse" element={<Analyse />} />
+        <Route path="/signin" element={<SignInPage />} />
+
+        {/* everything past the fold needs a real account */}
+        <Route path="/inputs" element={<Protected><Inputs /></Protected>} />
+        <Route path="/choose" element={<Protected><Choose /></Protected>} />
+        <Route path="/vision" element={<Protected><Vision /></Protected>} />
+        <Route path="/upload" element={<Protected><Upload /></Protected>} />
+        <Route path="/market" element={<Protected><Market /></Protected>} />
+        <Route path="/brief" element={<Protected><Brief /></Protected>} />
+        <Route path="/analyse" element={<Protected><Analyse /></Protected>} />
       </Routes>
     </BriefProvider>
   )

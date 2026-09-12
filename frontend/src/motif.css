@@ -436,3 +436,13 @@ a{color:inherit;text-decoration:none}
   .statrow,.statrow.three{grid-template-columns:1fr 1fr}
   .case{grid-template-columns:1fr}
 }
+
+/* ---------- Clerk auth surfaces ---------- */
+.authcard{display:flex;justify-content:center;padding:8px 0 0}
+.authwait{
+  position:relative;z-index:3;text-align:center;padding:140px 24px;
+  font-size:14px;color:var(--label);
+}
+/* Clerk renders its own card; let it sit on our ground without a double frame */
+.authcard .cl-rootBox,.authcard .cl-card{box-shadow:none;background:transparent}
+.user .cl-userButtonAvatarBox{width:21px;height:21px}
