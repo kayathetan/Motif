@@ -85,7 +85,7 @@ a{color:inherit;text-decoration:none}
 .nav{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;padding:24px 44px}
 .brand{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:590;letter-spacing:-.04em}
 .brand .mk{
-  width:22px;height:22px;flex:none;display:block;
+  width:29px;height:29px;flex:none;display:block;
   /* the mark is a transparent PNG, so it sits on any ground */
 }
 .nav-links{display:flex;gap:28px}

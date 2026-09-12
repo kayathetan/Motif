@@ -17,7 +17,7 @@ export default function Nav({ variant = 'marketing', links = [], action = null }
 
   return (
     <div className="nav">
-      <Link className="brand" to="/"><img className="mk" src="/logo.png" alt="" width="22" height="22" />Motif</Link>
+      <Link className="brand" to="/"><img className="mk" src="/logo.png" alt="" width="29" height="29" />Motif</Link>
 
       <div className="nav-links">
         {links.map((l) =>
