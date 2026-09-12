@@ -1,0 +1,90 @@
+# Hand-written sample Pattern data for developing/testing brief_generator.py
+# in isolation, before real Supabase retrieval and the ingestion pipeline
+# are wired up. Shape matches models.schemas.Pattern exactly.
+#
+# Usage:
+#   from src.services.sample_patterns import SAMPLE_PATTERNS
+#   generate_brief(SAMPLE_PATTERNS, some_brief_request)
+
+SAMPLE_PATTERNS: list[dict] = [
+    {
+        "niche": "fitness",
+        "platform": "tiktok",
+        "hook_style": "bold claim",
+        "hook_text": "This is the only ab exercise you actually need.",
+        "hook_delivery_seconds": 1.5,
+        "visual_format": "talking head + b-roll cutaways",
+        "scene_change_frequency": "every 2-3s",
+        "on_screen_text": True,
+        "camera_style": "handheld, close-up",
+        "reveal_order": "claim -> demonstration -> payoff -> cta",
+        "cta_placement_percent": 85.0,
+        "pacing": "fast",
+        "emotional_trigger": "curiosity",
+        "success_factors": [
+            "hook delivered in under 2 seconds",
+            "on-screen text reinforces the spoken hook",
+            "single clear exercise demo with no filler",
+        ],
+    },
+    {
+        "niche": "fitness",
+        "platform": "tiktok",
+        "hook_style": "pattern interrupt",
+        "hook_text": "Stop doing crunches. Do this instead.",
+        "hook_delivery_seconds": 1.0,
+        "visual_format": "split screen comparison",
+        "scene_change_frequency": "every 3-4s",
+        "on_screen_text": True,
+        "camera_style": "static tripod, wide shot",
+        "reveal_order": "myth -> correction -> demonstration -> cta",
+        "cta_placement_percent": 90.0,
+        "pacing": "fast",
+        "emotional_trigger": "surprise",
+        "success_factors": [
+            "negation hook creates an open loop",
+            "side-by-side comparison makes the payoff visual, not just verbal",
+            "cta placed after payoff, not before",
+        ],
+    },
+    {
+        "niche": "fitness",
+        "platform": "reels",
+        "hook_style": "relatable pain point",
+        "hook_text": "POV: you've tried every diet and nothing sticks.",
+        "hook_delivery_seconds": 2.0,
+        "visual_format": "talking head, direct to camera",
+        "scene_change_frequency": "every 5s",
+        "on_screen_text": True,
+        "camera_style": "handheld, medium shot",
+        "reveal_order": "empathy -> reframe -> 3-step method -> cta",
+        "cta_placement_percent": 80.0,
+        "pacing": "medium",
+        "emotional_trigger": "validation",
+        "success_factors": [
+            "POV framing makes the hook feel personal",
+            "numbered steps make the payoff easy to follow",
+            "tone stays encouraging rather than preachy",
+        ],
+    },
+    {
+        "niche": "fitness",
+        "platform": "tiktok",
+        "hook_style": "cold open result",
+        "hook_text": "30 days of this and my energy completely changed.",
+        "hook_delivery_seconds": 1.8,
+        "visual_format": "before/after b-roll montage",
+        "scene_change_frequency": "every 2s",
+        "on_screen_text": True,
+        "camera_style": "mixed handheld + phone selfie",
+        "reveal_order": "result teaser -> process -> explanation -> cta",
+        "cta_placement_percent": 88.0,
+        "pacing": "fast",
+        "emotional_trigger": "aspiration",
+        "success_factors": [
+            "result shown before explanation, not after",
+            "rapid cuts keep energy high through the middle third",
+            "cta tied directly to the promised result",
+        ],
+    },
+]
