@@ -13,7 +13,7 @@ export default function Choose() {
       <Nav variant="app" links={[{ label: 'Market', to: '/market' }, { label: 'Inputs', to: '/inputs' }]} />
 
       <div className="hero" style={{ paddingTop: 52 }}>
-        <h1 className="sm">Select a workflow.</h1>
+        <h1 className="sm">Select a workflow</h1>
         <Pills brief={brief} editable />
       </div>
 
@@ -37,7 +37,7 @@ export default function Choose() {
             <h3>Build a brief for new content</h3>
             <p>
               You have a concept but no production plan. Motif returns a scene-by-scene brief your team or creator can
-              shoot from immediately: hooks, timestamped outline, pacing, lighting, shot, on-screen text and the CTA line.
+              shoot from immediately: hooks, timestamped outline, pacing, lighting, shot, on-screen text and the CTA line
             </p>
             <p className="go">Build my brief →</p>
           </Link>

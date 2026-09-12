@@ -54,11 +54,11 @@ const REWARDS = [
 
 const CASE = [
   ['What it costs to guess', 'A brief built on instinct',
-    <>Ten creators briefed without structure produce ten different structures, and you learn which worked after the spend. At a $14.60 paid CPM, <b>a structurally weak video is a media budget spent on reach that does not convert.</b></>],
+    <>Ten creators briefed without structure produce ten different structures, and you only learn which worked after the spend. At a $14.60 paid CPM, <b>a structurally weak video is a media budget spent on reach that does not convert.</b></>],
   ['What it costs to know', 'A brief built on the category',
     <>Motif prices the same decision at the research stage. <b>Organic attention in this category costs $2.40 per thousand views against $14.60 paid</b> — structure is the lever that moves spend from the second number to the first.</>],
   ['Where the return sits', 'Not in more content',
-    <>Category volume is up 18.4% in a quarter while saturation is up 31%. <b>Publishing more is getting more expensive, not less.</b> The return is in a higher hit rate per post, which is a structural problem, not a creative one.</>],
+    <>Category volume is up 18.4% in a quarter while saturation is up 31%. <b>Publishing more is getting more expensive, not less</b> The return is in a higher hit rate per post, which is a structural problem, not a creative one.</>],
 ]
 
 export default function Market() {
@@ -85,7 +85,7 @@ export default function Market() {
 
       <div className="hero" style={{ paddingTop: 72 }}>
         <p className="kick">Market intelligence · {brief.niche} · {brief.platform}</p>
-        <h1>Your category&apos;s attention,<br />priced.</h1>
+        <h1>What your category&apos;s<br />attention costs</h1>
         <p className="sub">
           Attention is a market with a supply, a growth rate and a clearing price. Motif measures all three for your
           category, so the brief your team writes is <b>a position in that market</b> rather than an opinion about it.
@@ -105,7 +105,7 @@ export default function Market() {
             <div className="card stat">
               <p className="sl">Cost per 1,000 views</p>
               <p className="sv">$2.40<span className="su">organic</span></p>
-              <p className="sn">Against <b>$14.60 paid</b>. A 6.1x spread, and the reason structure is a budget question.</p>
+              <p className="sn">Against <b>$14.60 paid</b>. A 6.1x spread, and the reason structure is a budget question</p>
             </div>
             <div className="card stat">
               <p className="sl">Saturation index</p>
@@ -241,7 +241,7 @@ export default function Market() {
           <div className="card tc" style={{ textAlign: 'center', padding: '44px 40px' }}>
             <p className="tl" style={{ color: 'var(--purple-deep)' }}>Act on it</p>
             <h4 style={{ fontSize: 28, letterSpacing: '-.03em', marginTop: 12 }}>
-              Turn this market read into a brief.
+              Turn this market read into a brief
             </h4>
             <p style={{ maxWidth: '54ch', margin: '12px auto 0' }}>
               The five patterns above become the structure of your next production brief, timestamped and shootable.

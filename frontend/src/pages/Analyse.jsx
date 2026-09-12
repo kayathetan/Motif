@@ -66,7 +66,7 @@ export default function Analyse() {
 
       <div className="hero" style={{ paddingTop: 80 }}>
         <p className="kick">Structural audit · reel-oct-draft2</p>
-        <h1>The concept works.<br />The order does not.</h1>
+        <h1>The concept works.<br />The order does not</h1>
 
         <div className="gauge">
           <div className="gwrap">
@@ -100,7 +100,7 @@ export default function Analyse() {
 
         <div className="sec">
           <div className="card working">
-            <h3>Performing as intended. Leave unchanged.</h3>
+            <h3>Performing as intended</h3>
             <ul>
               {WORKING.map(([title, body]) => (
                 <li key={title}><b>{title}</b>{body}</li>

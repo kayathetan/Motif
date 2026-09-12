@@ -31,7 +31,7 @@ export default function Vision() {
           <p className="demo-note">New content · {brief.niche} · {brief.platform.toLowerCase()}</p>
           <h2>Creative direction</h2>
           <p className="lede">
-            Motif supplies the structure. <b>You supply the creative intent.</b> The more specific this is, the less
+            Motif supplies the structure. <b>You supply the creative intent</b> The more specific this is, the less
             generic the brief returns. Only the first field is required.
           </p>
 
@@ -79,7 +79,7 @@ export default function Vision() {
               <ChipSet multi name="resources" options={RESOURCES} value={brief.resources} onChange={(v) => update({ resources: v })} />
               <p className="hint">
                 Motif only specifies shots the production can actually deliver.{' '}
-                <b>No tripod means no locked-off shots in the brief.</b>
+                <b>No tripod means no locked-off shots in the brief</b>
               </p>
             </div>
 
