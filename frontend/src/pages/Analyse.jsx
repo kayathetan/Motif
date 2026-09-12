@@ -57,10 +57,10 @@ export default function Analyse() {
         variant="app"
         action={{ to: '/brief', label: 'Build a brief' }}
         links={[
+          { label: 'Market', to: '/market' },
           { label: 'Brief', to: '/brief' },
           { label: 'Analyse', to: '/upload', on: true },
-          { label: 'Inputs', to: '/inputs' },
-          { label: 'Direction', to: '/choose' }
+          { label: 'Inputs', to: '/inputs' }
         ]}
       />
 

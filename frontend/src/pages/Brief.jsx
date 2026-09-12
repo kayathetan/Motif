@@ -134,10 +134,10 @@ export default function Brief() {
         variant="app"
         action={{ to: '/upload', label: 'Audit a draft' }}
         links={[
+          { label: 'Market', to: '/market' },
           { label: 'Brief', to: '/brief', on: true },
           { label: 'Analyse', to: '/upload' },
-          { label: 'Inputs', to: '/inputs' },
-          { label: 'Direction', to: '/choose' }
+          { label: 'Inputs', to: '/inputs' }
         ]}
       />
 

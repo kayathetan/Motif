@@ -6,14 +6,12 @@
 //   <div className="shaderhero"><ShaderBackground /><div className="shaderhero-fade" /></div>
 //
 // Colours in UNIFORMS.colors are the brand tokens, normalised to 0..1:
-//   #4C1D95 · #6D28D9 · #8B5CF6 · #C4B5FD · #FBFAFC ground
+//   violet family  #4C1D95 · #6D28D9 · #8B5CF6   (held to the left)
+//   warm family    #F59E3C · #F26A1B · #FBFAFC   (held to the right)
 //
-// The shader is deliberately single-hue. Its blobs sum and blend wherever
-// they overlap, and the midpoint of violet and orange is rose - so any
-// purple + orange gradient produces pink by arithmetic, not by mistake.
-// Orange lives everywhere else in the identity (buttons, labels, the pacing
-// marks, the inner-page mesh); the hero carries the violet end alone.
-// Remaining slots repeat the ground colour; the shader reads `colorCount`.
+// Both hues are present, but shade() pushes each family to its own side of
+// the canvas. They have to be kept apart: rose is the arithmetic midpoint of
+// purple and orange, so anywhere the two blend you get pink.
 
 import { useEffect, useRef } from "react"
 
@@ -187,8 +185,14 @@ vec3 hueRotate(vec3 col, float a) {
   return toRGB * yiq;
 }
 
+// Index 0..2 violet (pushed left), index 3 the ground colour (pinned centre),
+// index 4+ warm (pushed right). u_paramA is repurposed as that push distance.
+// The centre-pinned light blob matters: without something neutral in the gap
+// the two families meet at the midline and sum to rose, which is arithmetically
+// the midpoint of purple and orange.
 vec3 shade(vec2 uv, vec2 p, float t) {
-  vec3 acc = u_colors[0] * 0.15;
+  // a neutral floor, not u_colors[0] - a violet floor tints the warm side
+  vec3 acc = vec3(0.96, 0.955, 0.965) * 0.15;
   float total = 0.15;
   for (int i = 0; i < 8; i++) {
     if (float(i) >= u_colorCount) break;
@@ -196,6 +200,7 @@ vec3 shade(vec2 uv, vec2 p, float t) {
     vec2 c = vec2(
       sin(t * (0.21 + fi * 0.071) + fi * 2.4 + u_seed),
       cos(t * (0.17 + fi * 0.093) + fi * 1.7)) * (0.45 + u_intensity * 0.35);
+    c.x += (fi < 3.0 ? -1.0 : (fi > 3.0 ? 1.0 : 0.0)) * u_paramA;
     float w = exp(-dot(p - c, p - c) * 6.0);
     acc += u_colors[i] * w;
     total += w;
@@ -297,19 +302,19 @@ void main() {
 const UNIFORMS = {
   // Motif palette: purple-deep, purple, blood orange, amber, ground.
   colors: [
-    [0.2980392156862745, 0.1137254901960784, 0.5843137254901961], // #4C1D95 purple-ink
-    [0.4274509803921568, 0.1568627450980392, 0.8509803921568627], // #6D28D9 purple-deep
-    [0.5450980392156862, 0.3607843137254902, 0.9647058823529412], // #8B5CF6 purple
-    [0.7686274509803922, 0.7098039215686275, 0.9921568627450981], // #C4B5FD purple-soft
-    [0.9843137254901960, 0.9803921568627451, 0.9882352941176471], // #FBFAFC ground
-    [0.9843137254901960, 0.9803921568627451, 0.9882352941176471],
+    [0.2980392156862745, 0.1137254901960784, 0.5843137254901961], // #4C1D95 purple-ink   (left)
+    [0.4274509803921568, 0.1568627450980392, 0.8509803921568627], // #6D28D9 purple-deep  (left)
+    [0.5450980392156862, 0.3607843137254902, 0.9647058823529412], // #8B5CF6 purple       (left)
+    [0.9843137254901960, 0.9803921568627451, 0.9882352941176471], // #FBFAFC ground     (centre)
+    [0.9607843137254902, 0.6196078431372549, 0.2352941176470588], // #F59E3C amber       (right)
+    [0.9490196078431372, 0.4156862745098039, 0.1058823529411765], // #F26A1B orange      (right)
     [0.9843137254901960, 0.9803921568627451, 0.9882352941176471],
     [0.9843137254901960, 0.9803921568627451, 0.9882352941176471],
   ],
-  colorCount: 5,
+  colorCount: 6,
   scale: 1.05,
-  intensity: 0.54,
-  paramA: 0.5,
+  intensity: 0.34,
+  paramA: 0.98,   // hue-family separation, see shade()
   warp: 0.0,
   detail: 2.4,
   contrast: 1.02,      // softened: full contrast reads harsh on a light page
@@ -329,7 +334,7 @@ const UNIFORMS = {
   cursorStrength: 0.65,
   cursorRadius: 0.46,
   oklab: 1.0,          // perceptual mixing: purple->orange without muddy midtones
-  timeScale: 0.55,     // visible but unhurried
+  timeScale: 0.94,     // 1.7x the previous 0.55
 }
 
 const pendingContextReleases = new WeakMap()
