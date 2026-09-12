@@ -1,6 +1,6 @@
 # Main entry point: orchestrates the full pipeline (fetch -> process ->
 # extract -> store) for every URL in pipeline/data/video_urls.json.
-# Standalone script — shares the ChromaDB store with backend/ but has no
+# Standalone script — shares the Supabase store with backend/ but has no
 # imports from backend/src/.
 
 def main() -> None:

@@ -1,10 +1,10 @@
 # Embeds a Pattern and stores it (document + embedding + metadata) in the
-# shared ChromaDB "content_patterns" collection.
+# shared Supabase "patterns" table (see backend/sql/schema.sql).
 
 def store_pattern(pattern: dict) -> None:
     """
-    Generate an embedding for the pattern and store it in ChromaDB, with
-    all pattern fields persisted as metadata alongside the document text
+    Generate an embedding for the pattern and upsert it into Supabase, with
+    all pattern fields persisted as columns alongside the document text
     and embedding.
 
     Args:

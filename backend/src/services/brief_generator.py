@@ -2,21 +2,29 @@
 # structural patterns using GPT-4o structured JSON output.
 #
 # Structured output convention (applies to every GPT-4o call in this
-# project): use OpenAI Structured Outputs via .parse(), passing the
-# Pydantic response model directly, e.g.
+# project): use the OpenAI Responses API with a strict json_schema format,
+# built from the Pydantic response model's own schema, then validate the
+# returned JSON back into that model, e.g.
 #
 #   from openai import OpenAI
 #   client = OpenAI()
-#   completion = client.beta.chat.completions.parse(
+#   response = client.responses.create(
 #       model="gpt-4o",
-#       messages=[...],
-#       response_format=BriefResponse,
+#       input=[...],
+#       text={
+#           "format": {
+#               "type": "json_schema",
+#               "name": "content_brief",
+#               "strict": True,
+#               "schema": BriefResponse.model_json_schema(),
+#           }
+#       },
 #   )
-#   brief: BriefResponse = completion.choices[0].message.parsed
+#   brief = BriefResponse.model_validate_json(response.output_text)
 #
-# This guarantees the output matches BriefResponse exactly - no manual
-# JSON-schema writing or hand-rolled validation needed. Requires
-# openai>=1.40.0 (see requirements.txt).
+# This guarantees the output matches BriefResponse exactly. Use this same
+# pattern in intelligence_aggregator.py and pipeline/pattern_extractor.py
+# for consistency.
 #
 # For local development/testing without live Supabase retrieval, use the
 # fixtures in sample_patterns.py:
