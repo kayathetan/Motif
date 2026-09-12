@@ -5,6 +5,7 @@ import Landing from './pages/Landing.jsx'
 import Signup from './pages/Signup.jsx'
 import SignInPage from './pages/SignIn.jsx'
 import Protected from './components/Protected.jsx'
+import Demo from './pages/Demo.jsx'
 import Inputs from './pages/Inputs.jsx'
 import Choose from './pages/Choose.jsx'
 import Vision from './pages/Vision.jsx'
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<SignInPage />} />
+        <Route path="/demo" element={<Demo />} />
 
         {/* everything past the fold needs a real account */}
         <Route path="/inputs" element={<Protected><Inputs /></Protected>} />

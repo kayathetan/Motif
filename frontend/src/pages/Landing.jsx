@@ -182,8 +182,11 @@ export default function Landing() {
             <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
               Create a demo workspace and run one brief against your own category. No card required, nothing stored.
             </p>
-            <p style={{ marginTop: 28 }}>
-              <Link className="btn-primary" to="/signup">Create a demo workspace →</Link>
+            <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <Link className="btn-primary" to="/signup">Create an account →</Link>
+              <Link className="btn-ghost" to="/demo" style={{ alignSelf: 'center' }}>
+                or explore the demo, no sign-up
+              </Link>
             </p>
           </div>
         </div>
