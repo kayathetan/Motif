@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Mesh from '../components/Mesh.jsx'
+import ShaderBackground from '../components/ShaderBackground.jsx'
 import Nav from '../components/Nav.jsx'
 import { useBrief } from '../store.jsx'
 
@@ -60,7 +60,10 @@ export default function Landing() {
 
   return (
     <>
-      <Mesh tall />
+      <div className="shaderhero" aria-hidden="true">
+        <ShaderBackground />
+        <div className="shaderhero-fade" />
+      </div>
       <Nav
         links={[
           { label: 'Product', href: '#product' },

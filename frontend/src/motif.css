@@ -41,7 +41,37 @@ svg{display:block}
 a{color:inherit;text-decoration:none}
 .mono{font-family:'JetBrains Mono',ui-monospace,monospace}
 
-/* ---------- gradient mesh: purple + orange ---------- */
+/* ---------- animated hero shader (WebGL, landing only) ---------- */
+.shaderhero{
+  position:absolute;left:0;right:0;top:0;height:880px;
+  z-index:0;pointer-events:none;overflow:hidden;
+}
+.shaderhero canvas{position:absolute;inset:0}
+/* the shader paints edge to edge, so fade it out rather than letting it
+   end on a hard line above the first section */
+.shaderhero-fade{
+  position:absolute;inset:0;
+  background:
+    /* a soft veil behind the text column only, so the headline and sub keep
+       their contrast while the corners stay fully coloured */
+    radial-gradient(44% 38% at 50% 33%,
+      rgba(251,250,252,.62) 0%,
+      rgba(251,250,252,.28) 46%,
+      rgba(251,250,252,0) 74%),
+    linear-gradient(to bottom,
+      rgba(251,250,252,.40) 0%,
+      rgba(251,250,252,.10) 20%,
+      rgba(251,250,252,.02) 46%,
+      rgba(251,250,252,.70) 80%,
+      var(--ground) 100%),
+    linear-gradient(to right,
+      var(--ground) 0%,
+      rgba(251,250,252,0) 16%,
+      rgba(251,250,252,0) 84%,
+      var(--ground) 100%);
+}
+
+/* ---------- gradient mesh: purple + orange (inner pages) ---------- */
 .mesh{
   position:absolute;left:0;right:0;top:0;height:760px;z-index:0;pointer-events:none;
   background:
