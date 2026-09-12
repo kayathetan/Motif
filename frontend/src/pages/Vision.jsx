@@ -99,7 +99,7 @@ export default function Vision() {
             </div>
 
             <div className="actions">
-              <button className="btn-pink" type="submit">Build my brief →</button>
+              <button className="btn-primary" type="submit">Build my brief →</button>
               <p className="alt">Returns in roughly 20 seconds. <Link to="/choose">Change workflow</Link></p>
             </div>
           </form>

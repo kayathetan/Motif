@@ -57,10 +57,10 @@ export default function Analyse() {
         variant="app"
         action={{ to: '/brief', label: 'Build a brief' }}
         links={[
+          { label: 'Market', to: '/market' },
           { label: 'Brief', to: '/brief' },
           { label: 'Analyse', to: '/upload', on: true },
-          { label: 'Inputs', to: '/inputs' },
-          { label: 'Direction', to: '/choose' }
+          { label: 'Inputs', to: '/inputs' }
         ]}
       />
 
@@ -72,7 +72,7 @@ export default function Analyse() {
           <div className="gwrap">
             <svg width="260" height="150" viewBox="0 0 260 150" aria-hidden="true">
               <path d="M 30 130 A 100 100 0 0 1 230 130" fill="none" stroke="#F1E6EA" strokeWidth="20" strokeLinecap="round" />
-              <path d="M 30 130 A 100 100 0 0 1 230 130" fill="none" stroke="#C81E63" strokeWidth="20" strokeLinecap="round" strokeDasharray={dash} />
+              <path d="M 30 130 A 100 100 0 0 1 230 130" fill="none" stroke="#7C3AED" strokeWidth="20" strokeLinecap="round" strokeDasharray={dash} />
             </svg>
             <div className="gnum"><b>{SCORE.toFixed(1)}</b><i>out of 10</i></div>
           </div>

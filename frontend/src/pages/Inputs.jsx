@@ -74,7 +74,7 @@ export default function Inputs() {
             </div>
 
             <div className="actions">
-              <button className="btn-pink" type="submit">Continue →</button>
+              <button className="btn-primary" type="submit">Continue →</button>
               <p className="alt">Editable later from any result page.</p>
             </div>
           </form>
