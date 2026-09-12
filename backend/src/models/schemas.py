@@ -34,6 +34,8 @@ class Pattern(BaseModel):
     on_screen_text: bool
     camera_style: str
     reveal_order: str
+    payoff_seconds: float
+    cta_type: str
     cta_placement_percent: float
     pacing: str
     emotional_trigger: str
