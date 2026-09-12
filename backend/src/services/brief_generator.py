@@ -19,7 +19,7 @@ client = OpenAI(
 )
 
 # Keep model configurable so you can compare quality / latency / cost.
-BRIEF_MODEL = os.getenv("BRIEF_MODEL", "gpt-5.6-terra")
+BRIEF_MODEL = os.getenv("BRIEF_MODEL", "gpt-4o")
 
 # Don't send an unlimited number of retrieved examples into the model.
 MAX_PATTERNS = 12
