@@ -52,7 +52,11 @@ For each field:
 - content_type: what KIND of video this is, independent of what industry
   or product it's about - e.g. "product_demo", "routine_tutorial",
   "reaction_commentary", "culture_relatable", "haul_roundup",
-  "educational_explainer", "testimonial_ugc", "before_after_transformation".
+  "educational_explainer", "testimonial_ugc", "before_after_transformation",
+  "trailer_promo" (a cut-down teaser driving to a longer piece of content
+  elsewhere, e.g. a podcast clip - use this even if the tone is personal
+  or motivational, when the video's actual structural purpose is to
+  promote something else rather than be a complete short in itself).
   This is a different axis from the topic: two product demos from
   different industries share more structural DNA with each other than a
   product demo and a culture piece from the SAME industry do. Judge this
