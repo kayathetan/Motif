@@ -20,12 +20,11 @@ export default function Choose() {
       <div className="wrap">
         <div className="sec" style={{ marginTop: 0 }}>
           <Link className="card tc" to="/market" style={{ display: 'block', padding: '24px 26px' }}>
-            <p className="tl" style={{ color: 'var(--purple-deep)' }}>Before either of those</p>
+            <p className="tl" style={{ color: 'var(--purple-deep)' }}>Before you build</p>
             <h4 style={{ marginTop: 8 }}>Read the market first →</h4>
             <p style={{ maxWidth: '78ch' }}>
               Category attention volume, your share of it, what the market is rewarding this quarter, and what a
-              thousand views costs you organically against paid. <b>The brief and the audit are both judged against
-              these numbers.</b>
+              thousand views costs you organically against paid. <b>The brief is judged against these numbers.</b>
             </p>
           </Link>
         </div>
@@ -40,17 +39,6 @@ export default function Choose() {
               shoot from immediately: hooks, timestamped outline, pacing, lighting, shot, on-screen text and the CTA line
             </p>
             <p className="go">Build my brief →</p>
-          </Link>
-
-          <Link className="card door audit" to="/upload">
-            <div className="ic" />
-            <p className="dk">Post-production</p>
-            <h3>Audit content you have already made</h3>
-            <p>
-              You have a draft that is underperforming. Motif scores its structure against the top quartile in your
-              niche and ranks the gaps by impact, so you know which fix to make first.
-            </p>
-            <p className="go">Run an audit →</p>
           </Link>
         </div>
       </div>

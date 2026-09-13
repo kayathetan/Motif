@@ -9,10 +9,8 @@ import Demo from './pages/Demo.jsx'
 import Inputs from './pages/Inputs.jsx'
 import Choose from './pages/Choose.jsx'
 import Vision from './pages/Vision.jsx'
-import Upload from './pages/Upload.jsx'
 import Market from './pages/Market.jsx'
 import Brief from './pages/Brief.jsx'
-import Analyse from './pages/Analyse.jsx'
 
 export default function App() {
   return (
@@ -27,10 +25,8 @@ export default function App() {
         <Route path="/inputs" element={<Protected><Inputs /></Protected>} />
         <Route path="/choose" element={<Protected><Choose /></Protected>} />
         <Route path="/vision" element={<Protected><Vision /></Protected>} />
-        <Route path="/upload" element={<Protected><Upload /></Protected>} />
         <Route path="/market" element={<Protected><Market /></Protected>} />
         <Route path="/brief" element={<Protected><Brief /></Protected>} />
-        <Route path="/analyse" element={<Protected><Analyse /></Protected>} />
       </Routes>
     </BriefProvider>
   )

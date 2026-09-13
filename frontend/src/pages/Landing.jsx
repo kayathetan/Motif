@@ -14,11 +14,6 @@ const product = [
     kicker: 'Production',
     title: 'A brief your team can execute',
     body: <>Hook options, a timestamped outline, pacing, lighting, shot and the approved CTA line, all derived from what the category measurably rewards. <b>A production document, not advice</b></>
-  },
-  {
-    kicker: 'Assurance',
-    title: 'A scored audit before you spend',
-    body: <>Where a draft diverges from what performs, ranked by impact. <b>Your hook lands at 6.4s; the market rewards under 2.</b> Caught before the media budget goes near it.</>
   }
 ]
 
@@ -42,9 +37,8 @@ const teams = [
 
 const steps = [
   ['01', 'Define the campaign', 'Category, platform, target audience and the objective you are optimising for: reach, retention, shares or conversions'],
-  ['02', 'Select a workflow', 'Build a brief for new content, or audit content your team has already produced'],
-  ['03', 'Receive the structure', 'A scene-by-scene production brief, or a scored audit with gaps ranked in priority order'],
-  ['04', 'Close the loop', 'Shoot against the brief, then return the draft through the audit to measure where execution diverged']
+  ['02', 'Receive the structure', 'A scene-by-scene production brief: hooks, timestamped outline, pacing, lighting, shot, on-screen text and the CTA line'],
+  ['03', 'Shoot it', 'Hand the brief to your team or creator and produce against it directly']
 ]
 
 export default function Landing() {
@@ -133,8 +127,8 @@ export default function Landing() {
         </div>
 
         <div className="sec" id="product">
-          <h2>Three things a content programme cannot currently buy</h2>
-          <div className="three">
+          <h2>What a content programme cannot currently buy</h2>
+          <div className="two">
             {product.map((c) => (
               <div className="card fc" key={c.title}>
                 <p className="fk">{c.kicker}</p>

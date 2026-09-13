@@ -28,12 +28,16 @@ frontend/src/
   motif.css         design system: palette, type, components
   store.jsx         campaign inputs shared across the flow
   components/       Nav, Mesh, Pills, ChipSet
-  pages/            Landing, Signup, Inputs, Choose, Vision, Upload, Brief, Analyse
+  pages/            Landing, Signup, Inputs, Choose, Vision, Brief, Market
 ```
 
-The flow is: Landing → Signup → Inputs → Choose, then either
-Vision → Brief (new content) or Upload → Analyse (existing content).
+The flow is: Landing → Signup → Inputs → Choose → Vision → Brief. `Market`
+(GET `/api/intelligence/{niche}/{platform}`) is reachable from the nav once
+signed in, for the category benchmarks behind a brief.
 
-Brief and Analyse currently render fixed example content for a skincare Reels
-campaign. `store.jsx` holds what the user entered and is the payload shape to
-POST to the backend once `/api/brief` is live.
+Brief and Market call the real backend (`src/api.js`) with a Clerk session
+token attached - not fixed example content. `store.jsx` holds what the user
+entered and is the payload shape POSTed to `/api/brief/generate`.
+
+Auditing existing content ("Upload" → "Analyse") was scoped out and removed
+- it was UI-only mockup with no backend behind it, not a working feature.

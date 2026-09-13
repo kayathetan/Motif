@@ -2,9 +2,9 @@ import { createContext, useContext, useState } from 'react'
 
 /**
  * Holds the campaign inputs as the user moves through the flow, so the brief
- * and audit pages can show what was actually entered rather than hardcoded
- * placeholders. When the FastAPI backend is wired in, this is the payload to
- * POST to /api/brief.
+ * page can show what was actually entered rather than hardcoded placeholders.
+ * See api.js's toBriefRequest() for how this shape maps to the POST
+ * /api/brief/generate payload.
  */
 const BriefContext = createContext(null)
 

@@ -63,7 +63,6 @@ export default function Market() {
         links={[
           { label: 'Market', to: '/market', on: true },
           { label: 'Brief', to: '/brief' },
-          { label: 'Analyse', to: '/upload' },
           { label: 'Inputs', to: '/inputs' },
         ]}
       />
