@@ -26,11 +26,15 @@ const initial = {
   account: { company: 'Acme Skincare', role: 'Social media manager' },
   niche: 'beauty',
   platform: 'YouTube Shorts',
-  audience: 'women 18–24',
-  objectives: ['Shares', 'Retention'],
+  // Prefilled with the demo-day example so the live walkthrough doesn't
+  // need any typing - still a normal, editable field, not a placeholder.
+  audience: 'Women 18-34 interested in skincare and makeup',
+  objectives: ['Shares', 'Reach'],
   constraints: '',
-  vision: '',
-  topic: '',
+  vision:
+    'This should read as a genuine three-week before-and-after from a real customer, not a product ad. ' +
+    'Quiet and credible, closer to a testimonial than a campaign. The product can appear but must not lead.',
+  topic: 'our new hydrating serum launch',
   tone: [],
   resources: [],
   duration: '0:45'

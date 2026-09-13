@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="claude-code">
   <diagram id="motif-backend-pipelines" name="Backend Pipelines">
-    <mxGraphModel dx="5883" dy="1920" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="990" math="0" shadow="0">
+    <mxGraphModel dx="5560" dy="3040" grid="0" gridSize="10" guides="0" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1900" pageHeight="990" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
