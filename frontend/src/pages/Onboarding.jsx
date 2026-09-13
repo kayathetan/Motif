@@ -60,10 +60,6 @@ export default function Onboarding() {
           ) : (
             <>
               <h2>Tell us about your business</h2>
-              <p className="lede">
-                Saved once to your account and folded into every brief from here on, so you don&apos;t re-explain who
-                you are each time. <b>Only the name is required.</b>
-              </p>
 
               <form onSubmit={submit}>
                 <div className="field">

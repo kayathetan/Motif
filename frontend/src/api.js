@@ -76,7 +76,7 @@ export function toBriefRequest(brief) {
     goal: OBJECTIVE_TO_GOAL[brief.objectives[0]] || 'engagement',
     audience: brief.audience,
     brand_vibe: TONE_TO_VIBE[brief.tone[0]] || 'fun',
-    // These are already collected by Vision.jsx/Inputs.jsx but previously
+    // These are already collected by Inputs.jsx but previously
     // never left the frontend. No new UI - content_type has no dedicated
     // control at all; the backend infers it from creative_vision/topic
     // when relevant (see brief_generator.infer_content_type).

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '@clerk/react'
 import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
@@ -47,15 +47,10 @@ export default function SavedBrief() {
 
   return (
     <>
-      <Mesh />
-      <Nav
-        variant="app"
-        links={[
-          { label: 'Dashboard', to: '/dashboard' },
-          { label: 'Market', to: '/market' },
-          { label: 'Inputs', to: '/inputs' },
-        ]}
-      />
+      <div className="no-print">
+        <Mesh />
+        <Nav variant="app" />
+      </div>
 
       <div className="wrap" style={{ paddingTop: 34 }}>
         {state.status === 'loading' && (
@@ -108,6 +103,10 @@ export default function SavedBrief() {
               }}
               left
             />
+            <div className="resultbar no-print">
+              <Link className="btn-ghost" to="/dashboard">← Back to dashboard</Link>
+              <button className="btn-dark" type="button" onClick={() => window.print()}>Download as PDF ⭳</button>
+            </div>
             <BriefContent data={state.data.brief} niche={state.data.niche} />
           </>
         )}

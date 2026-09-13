@@ -42,18 +42,20 @@ export default function Brief() {
 
   return (
     <>
-      <Mesh />
-      <Nav
-        variant="app"
-        links={[
-          { label: 'Market', to: '/market' },
-          { label: 'Brief', to: '/brief', on: true },
-          { label: 'Inputs', to: '/inputs' }
-        ]}
-      />
+      <div className="no-print">
+        <Mesh />
+        <Nav variant="app" />
+      </div>
 
       <div className="wrap" style={{ paddingTop: 34 }}>
         <Pills brief={brief} left />
+
+        {state.status === 'ready' && (
+          <div className="resultbar no-print">
+            <Link className="btn-ghost" to="/dashboard">← Back to dashboard</Link>
+            <button className="btn-dark" type="button" onClick={() => window.print()}>Download as PDF ⭳</button>
+          </div>
+        )}
 
         {state.status === 'loading' && (
           <div className="sec" style={{ marginTop: 40 }}>
@@ -87,7 +89,7 @@ export default function Brief() {
               <p style={{ color: 'var(--bad)', fontWeight: 510, fontSize: 15.5 }}>Couldn&apos;t generate a brief</p>
               <p style={{ color: 'var(--ink-2)', marginTop: 8, fontSize: 13.5 }}>{state.error.message}</p>
               <p style={{ marginTop: 20 }}>
-                <Link className="btn-dark" to="/vision">Back to creative direction →</Link>
+                <Link className="btn-dark" to="/inputs">Back to inputs →</Link>
               </p>
             </div>
           </div>

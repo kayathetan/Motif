@@ -130,13 +130,19 @@ a{color:inherit;text-decoration:none}
   border-radius:999px;padding:9px 17px;color:var(--ink-2)}
 .pill b{color:var(--ink);font-weight:500}
 
+/* The finished-brief pages' way back out: a result is a dead end
+   otherwise, since signed-in pages carry no link bar (see .nav-links'
+   sole remaining use). Hidden on print - it's chrome, not part of the
+   brief someone exports. */
+.resultbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:22px;flex-wrap:wrap}
+
 /* ---------- layout ---------- */
 .wrap{position:relative;z-index:2;max-width:1440px;margin:0 auto;padding:0 44px}
 /* A page whose .wrap is the last element has no .foot to supply bottom
-   space, so its final card ended flush against the document edge -
-   /choose scrolled a total of 4px and the door card read as clipped.
-   Scoped to :last-child so pages that do have a .foot keep their
-   existing spacing rather than gaining a second gap. */
+   space, so its final card ended flush against the document edge and the
+   last card on the page read as clipped. Scoped to :last-child so pages
+   that do have a .foot keep their existing spacing rather than gaining a
+   second gap. */
 .wrap:last-child{padding-bottom:88px}
 .sec{margin-top:70px}
 .sec h2{font-size:29px;font-weight:590;letter-spacing:-.038em;margin-bottom:22px}
@@ -277,6 +283,11 @@ a{color:inherit;text-decoration:none}
 .formcard{background:var(--card);border:1px solid #F0ECF7;border-radius:20px;padding:40px;
   box-shadow:0 2px 6px rgba(76,29,149,.05),0 18px 50px rgba(76,29,149,.09)}
 .formcard h2{font-size:32px;font-weight:590;letter-spacing:-.04em;line-height:1.1}
+/* Marks the start of a new section within one long form (e.g. "Campaign
+   inputs" giving way to "Creative direction" on Inputs.jsx) rather than a
+   new page - a divider, not a second h2. */
+.formcard h3{font-size:20px;font-weight:590;letter-spacing:-.025em;
+  margin:34px 0 0;padding-top:28px;border-top:1px solid var(--hair)}
 .formcard .lede{font-size:15.5px;color:var(--ink-2);line-height:1.6;margin-top:12px}
 .field{margin-top:26px}
 .field label{display:block;font-size:12px;letter-spacing:.01em;
@@ -527,4 +538,14 @@ a{color:inherit;text-decoration:none}
 @media (prefers-reduced-motion:reduce){
   .loadcard::before{animation:none;width:100%;opacity:.45}
   .dots i{animation:none;background:var(--purple)}
+}
+
+/* "Download as PDF" on a result page is the OS print dialog aimed at a
+   trimmed view of the page - no PDF library needed. .no-print marks
+   chrome (the mesh background, the nav bar, the back/download bar itself)
+   that shouldn't appear in the exported file. */
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border-color:#ddd}
 }

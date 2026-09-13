@@ -15,9 +15,13 @@ export default function Nav({ variant = 'marketing', links = [], action = null }
 
   const leaveDemo = () => { exitDemo(); window.location.href = '/' }
 
+  // Signed-in pages have no link bar (see below) - the logo is the only way
+  // back, so it should go to the dashboard, not the marketing homepage.
+  const brandTo = variant === 'app' ? '/dashboard' : '/'
+
   return (
     <div className="nav">
-      <Link className="brand" to="/"><img className="mk" src="/logo.png" alt="" width="29" height="29" />Motif</Link>
+      <Link className="brand" to={brandTo}><img className="mk" src="/logo.png" alt="" width="29" height="29" />Motif</Link>
 
       <div className="nav-links">
         {links.map((l) =>

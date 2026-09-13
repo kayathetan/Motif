@@ -204,10 +204,10 @@ export default function Landing() {
               </Show>
               <Show when="signed-in">
                 <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
-                  You&apos;re signed in. Pick a workflow and run a brief against your category.
+                  You&apos;re signed in. Head to your dashboard to run a brief against your category.
                 </p>
                 <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
-                  <Link className="btn-primary" to="/choose">Go to your workspace →</Link>
+                  <Link className="btn-primary" to="/dashboard">Go to your dashboard →</Link>
                   <Link className="btn-ghost" to="/market" style={{ alignSelf: 'center' }}>
                     or read the market first
                   </Link>
@@ -226,7 +226,7 @@ export default function Landing() {
         </p>
         <ClerkLoaded>
           <Show when="signed-out"><Link className="btn-dark" to="/signup">Book a demo →</Link></Show>
-          <Show when="signed-in"><Link className="btn-dark" to="/choose">Open Motif →</Link></Show>
+          <Show when="signed-in"><Link className="btn-dark" to="/dashboard">Open Motif →</Link></Show>
         </ClerkLoaded>
       </div>
     </>

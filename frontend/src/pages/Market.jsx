@@ -58,15 +58,7 @@ export default function Market() {
   return (
     <>
       <Mesh />
-      <Nav
-        variant="app"
-        action={{ to: '/brief', label: 'Build a brief' }}
-        links={[
-          { label: 'Market', to: '/market', on: true },
-          { label: 'Brief', to: '/brief' },
-          { label: 'Inputs', to: '/inputs' },
-        ]}
-      />
+      <Nav variant="app" />
 
       <div className="hero" style={{ paddingTop: 72 }}>
         <p className="kick">Market intelligence · {brief.niche} · {brief.platform}</p>
@@ -262,7 +254,7 @@ export default function Market() {
                   Turn this into a brief
                 </h4>
                 <p style={{ marginTop: 24 }}>
-                  <Link className="btn-primary" to={isDemo() ? '/signup' : '/vision'}>
+                  <Link className="btn-primary" to={isDemo() ? '/signup' : '/inputs'}>
                     {isDemo() ? 'Create an account to build a brief →' : 'Build a brief from this →'}
                   </Link>
                 </p>
