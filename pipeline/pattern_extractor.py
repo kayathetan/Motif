@@ -28,6 +28,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
+from pipeline.classify_niche import get_known_content_types
+
 # load_dotenv() with no args searches upward from the current working
 # directory - useless here, since backend/.env is a sibling of pipeline/,
 # not a parent. Point at it explicitly so this works regardless of where
@@ -60,7 +62,9 @@ For each field:
   This is a different axis from the topic: two product demos from
   different industries share more structural DNA with each other than a
   product demo and a culture piece from the SAME industry do. Judge this
-  from what the video actually does, not from who posted it.
+  from what the video actually does, not from who posted it. Check the
+  EXISTING CONTENT TYPES list below before choosing - reuse one of those
+  if it genuinely fits, same principle as cta_type below.
 - hook_style: name the technique (e.g. "bold claim", "pattern interrupt",
   "cold open result", "relatable pain point") - not a description of this
   video's specific hook.
@@ -125,8 +129,23 @@ def _frame_to_data_uri(frame_path: str) -> str:
     return f"data:{mime_type};base64,{encoded}"
 
 
-def _build_context_text(metadata: dict, transcript: list[dict], signals: dict) -> str:
+def _build_context_text(
+    metadata: dict, transcript: list[dict], signals: dict, known_content_types: list[str]
+) -> str:
     transcript_text = " ".join(segment["text"] for segment in transcript)
+
+    content_types_block = (
+        "EXISTING CONTENT TYPES already used in the pattern library - prefer\n"
+        "reusing one of these for content_type if it genuinely fits this\n"
+        "video. Only introduce a new one if none of these actually describes\n"
+        "it (a near-duplicate of an existing one, like \"product_demonstration\"\n"
+        "next to an existing \"product_demo\", fragments the library's\n"
+        "breakdown for no reason - reuse the existing one instead):\n"
+        + ", ".join(known_content_types) + "\n\n"
+        if known_content_types
+        else ""
+    )
+
     return f"""
 VIDEO METADATA:
 - title: {metadata.get('title')}
@@ -142,7 +161,7 @@ re-derive these two numbers):
 {signals.get('words_per_minute_middle_third')} / \
 {signals.get('words_per_minute_last_third')}
 
-TRANSCRIPT:
+{content_types_block}TRANSCRIPT:
 {transcript_text}
 
 The attached images are frames sampled chronologically from this video,
@@ -172,8 +191,12 @@ def extract_pattern(
         A dict matching every Pattern field except niche/platform (set by
         build_library.py from the video_urls.json loop, not guessed here).
     """
+    known_content_types = get_known_content_types()
     content: list[dict] = [
-        {"type": "input_text", "text": _build_context_text(metadata, transcript, signals)},
+        {
+            "type": "input_text",
+            "text": _build_context_text(metadata, transcript, signals, known_content_types),
+        },
     ]
     for frame_path in frame_paths:
         content.append(
