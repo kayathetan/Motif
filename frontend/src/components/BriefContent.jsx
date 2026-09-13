@@ -1,3 +1,5 @@
+import { capitalize, formatLabel } from '../format.js'
+
 /**
  * The actual generated-brief body: script outline, hook options, CTA,
  * hashtags, and a real-data market snapshot. Shared between Brief.jsx (a
@@ -38,19 +40,19 @@ export default function BriefContent({ data, niche, intelligence, onViewMarket }
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 18 }}>
             <div>
               <p className="tl">Format</p>
-              <p style={{ marginTop: 6, fontSize: 14.5 }}>{data.content_format}</p>
+              <p style={{ marginTop: 6, fontSize: 14.5 }}>{capitalize(data.content_format)}</p>
             </div>
             <div>
               <p className="tl">Pacing</p>
-              <p style={{ marginTop: 6, fontSize: 14.5 }}>{data.pacing}</p>
+              <p style={{ marginTop: 6, fontSize: 14.5 }}>{capitalize(data.pacing)}</p>
             </div>
             <div>
               <p className="tl">Visual style</p>
-              <p style={{ marginTop: 6, fontSize: 14.5 }}>{data.visual_style}</p>
+              <p style={{ marginTop: 6, fontSize: 14.5 }}>{capitalize(data.visual_style)}</p>
             </div>
             <div>
               <p className="tl">Audio direction</p>
-              <p style={{ marginTop: 6, fontSize: 14.5 }}>{data.audio_direction}</p>
+              <p style={{ marginTop: 6, fontSize: 14.5 }}>{capitalize(data.audio_direction)}</p>
             </div>
           </div>
         </div>
@@ -72,16 +74,18 @@ export default function BriefContent({ data, niche, intelligence, onViewMarket }
               </div>
 
               <div className="spec">
-                <div className="sr"><p className="sk">Format</p><p className="sv">{beat.shot_style}</p></div>
-                <div className="sr"><p className="sk">Shot</p><p className="sv">{beat.camera}</p></div>
-                <div className="sr"><p className="sk">Light</p><p className="sv">{beat.lighting}</p></div>
+                <div className="sr"><p className="sk">Format</p><p className="sv">{capitalize(beat.shot_style)}</p></div>
+                <div className="sr"><p className="sk">Shot</p><p className="sv">{capitalize(beat.camera)}</p></div>
+                <div className="sr"><p className="sk">Light</p><p className="sv">{capitalize(beat.lighting)}</p></div>
                 <div className="sr">
                   <p className="sk">Text</p>
                   <p className="sv">
-                    {hasCaption ? `"${beat.on_screen_caption}" · ${beat.on_screen_text_style}` : beat.on_screen_text_style}
+                    {hasCaption
+                      ? `"${beat.on_screen_caption}" · ${beat.on_screen_text_style}`
+                      : capitalize(beat.on_screen_text_style)}
                   </p>
                 </div>
-                <div className="sr"><p className="sk">Audio</p><p className="sv">{beat.audio}</p></div>
+                <div className="sr"><p className="sk">Audio</p><p className="sv">{capitalize(beat.audio)}</p></div>
               </div>
             </div>
           )
@@ -136,7 +140,7 @@ export default function BriefContent({ data, niche, intelligence, onViewMarket }
           <div className="statrow">
             <div className="card stat">
               <p className="sl">Dominant format</p>
-              <p className="sv" style={{ fontSize: 22 }}>{intelligence.data.dominant_format}</p>
+              <p className="sv" style={{ fontSize: 22 }}>{capitalize(intelligence.data.dominant_format)}</p>
               <p className="sn">{intelligence.data.dominant_format_percent}% of top performers</p>
             </div>
             <div className="card stat">
@@ -151,7 +155,7 @@ export default function BriefContent({ data, niche, intelligence, onViewMarket }
               <div className="card stat">
                 <p className="sl">Most-used CTA</p>
                 <p className="sv" style={{ fontSize: 22 }}>
-                  {intelligence.data.top_cta_types[0].cta.replaceAll('_', ' ')}
+                  {formatLabel(intelligence.data.top_cta_types[0].cta)}
                 </p>
                 <p className="sn">{intelligence.data.top_cta_types[0].percent}% of top performers</p>
               </div>

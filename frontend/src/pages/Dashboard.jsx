@@ -5,7 +5,8 @@ import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
 import ChipSet from '../components/ChipSet.jsx'
 import { useBrief } from '../store.jsx'
-import { fetchBrandProfile, fetchBriefs } from '../api.js'
+import { fetchBrandProfile, fetchBriefs, platformLabel } from '../api.js'
+import { formatLabel } from '../format.js'
 
 const PLATFORMS = ['Instagram Reels', 'TikTok', 'YouTube Shorts']
 
@@ -127,8 +128,8 @@ export default function Dashboard() {
               {briefs.map((b) => (
                 <Link key={b.id} to={`/briefs/${b.id}`} className="brief-row">
                   <div>
-                    <p className="bt">{b.topic || `${b.niche} · ${b.goal}`}</p>
-                    <p className="bs">{b.niche} · {b.platform} · {b.audience}</p>
+                    <p className="bt">{b.topic || `${formatLabel(b.niche)} · ${formatLabel(b.goal)}`}</p>
+                    <p className="bs">{formatLabel(b.niche)} · {platformLabel(b.platform)} · {b.audience}</p>
                   </div>
                   <p className="bd">
                     {new Date(b.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}

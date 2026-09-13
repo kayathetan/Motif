@@ -150,12 +150,19 @@ a{color:inherit;text-decoration:none}
   box-shadow:0 1px 2px rgba(76,29,149,.04),0 8px 24px rgba(76,29,149,.05)}
 
 /* ---------- script outline bands ---------- */
-.band{display:grid;grid-template-columns:128px 1fr 300px;gap:28px;align-items:center;
+/* mid is 1fr - on a wide screen that's much more than its text (capped
+   below at 64ch) ever fills, which read as dead space between the scene
+   description and the spec column rather than two adjacent blocks.
+   Letting the text wrap wider (64ch, up from 46ch) closes most of that
+   gap on its own; narrowing spec's fixed width moves the dividing line
+   the rest of the way toward it rather than leaving it stranded at the
+   far edge of an oversized mid column. */
+.band{display:grid;grid-template-columns:128px 1fr 250px;gap:24px;align-items:center;
   padding:20px;margin-bottom:14px}
 .band .tm{font-size:19px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .band .dur{font-size:11px;color:var(--label);margin-top:5px}
 .mid h3{font-size:27px;font-weight:590;letter-spacing:-.038em;line-height:1.1}
-.mid p{font-size:14.5px;color:var(--ink-2);line-height:1.6;margin-top:10px;max-width:46ch}
+.mid p{font-size:14.5px;color:var(--ink-2);line-height:1.6;margin-top:10px;max-width:64ch}
 .mid p b{color:var(--ink);font-weight:560}
 .spec{border-left:1px solid var(--line);padding-left:24px}
 .sr{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--hair)}

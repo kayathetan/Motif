@@ -76,7 +76,7 @@ export default function SavedBrief() {
 
   const viewMarket = () => {
     update({ niche, platform })
-    navigate('/market')
+    navigate('/market', { state: { fromBrief: true } })
   }
 
   return (

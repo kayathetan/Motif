@@ -133,7 +133,7 @@ export default function Brief() {
             data={state.data}
             niche={brief.niche}
             intelligence={intelligence}
-            onViewMarket={() => navigate('/market')}
+            onViewMarket={() => navigate('/market', { state: { fromBrief: true } })}
           />
         )}
       </div>
