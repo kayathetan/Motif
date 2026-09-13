@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 
+import psycopg
 from dotenv import load_dotenv
 from pgvector.psycopg import register_vector
 from psycopg.rows import dict_row
