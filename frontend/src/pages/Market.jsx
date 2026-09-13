@@ -5,6 +5,7 @@ import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
 import { useBrief } from '../store.jsx'
 import { fetchIntelligence, DemoModeUnavailable } from '../api.js'
+import { isDemo } from '../demo.js'
 
 /**
  * Market intelligence for a category - real data from GET
@@ -81,6 +82,23 @@ export default function Market() {
           <div className="sec" style={{ marginTop: 52 }}>
             <div className="card" style={{ padding: '48px 40px', textAlign: 'center' }}>
               <p style={{ fontSize: 15.5, color: 'var(--ink-2)' }}>Aggregating patterns for {brief.niche}…</p>
+            </div>
+          </div>
+        )}
+
+        {/* This page's data is real in demo mode - the intelligence route
+            serves anonymous callers. Only brief generation needs an
+            account, so say that here rather than gating the page. The
+            'demo' status below is now a safety net: it can only fire if
+            fetchIntelligence starts throwing DemoModeUnavailable again. */}
+        {isDemo() && state.status === 'ready' && (
+          <div className="sec" style={{ marginTop: 52, marginBottom: -28 }}>
+            <div className="card" style={{ padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <p style={{ fontSize: 13.5, color: 'var(--ink-2)', margin: 0, flex: '1 1 34ch' }}>
+                You&apos;re in demo mode. These figures are live, aggregated from the real pattern library.
+                Generating a brief needs an account.
+              </p>
+              <Link className="btn-dark" to="/signup" style={{ flex: '0 0 auto' }}>Create an account →</Link>
             </div>
           </div>
         )}
@@ -230,7 +248,9 @@ export default function Market() {
                   Turn this into a brief
                 </h4>
                 <p style={{ marginTop: 24 }}>
-                  <Link className="btn-primary" to="/vision">Build a brief from this →</Link>
+                  <Link className="btn-primary" to={isDemo() ? '/signup' : '/vision'}>
+                    {isDemo() ? 'Create an account to build a brief →' : 'Build a brief from this →'}
+                  </Link>
                 </p>
               </div>
             </div>

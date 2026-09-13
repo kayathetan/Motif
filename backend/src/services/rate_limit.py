@@ -57,6 +57,16 @@ _brief_limiter = _FixedWindowLimiter(int(os.getenv("BRIEF_RATE_LIMIT_PER_HOUR", 
 _intelligence_limiter = _FixedWindowLimiter(
     int(os.getenv("INTELLIGENCE_RATE_LIMIT_PER_HOUR", "60"))
 )
+# Anonymous (demo-link) callers of GET /api/intelligence/..., keyed by
+# client IP rather than Clerk user id. Tighter than the signed-in cap
+# because the key is weaker: an IP is shared by everyone behind a NAT and
+# is spoofable via X-Forwarded-For, so this is a courtesy throttle, not a
+# spend control. What actually bounds spend on that route is its response
+# cache - see routers/intelligence.py. Ordering matters: if this were the
+# only protection, forging the header would defeat it entirely.
+_demo_intelligence_limiter = _FixedWindowLimiter(
+    int(os.getenv("DEMO_INTELLIGENCE_RATE_LIMIT_PER_HOUR", "30"))
+)
 
 
 def enforce_brief_rate_limit(user_id: str) -> None:
@@ -67,3 +77,16 @@ def enforce_brief_rate_limit(user_id: str) -> None:
 def enforce_intelligence_rate_limit(user_id: str) -> None:
     """Raise HTTPException(429) if `user_id` has exceeded the intelligence rate limit."""
     _intelligence_limiter.check(user_id)
+
+
+def enforce_demo_intelligence_rate_limit(client_key: str) -> None:
+    """
+    Raise HTTPException(429) if an anonymous caller has exceeded the demo
+    intelligence rate limit.
+
+    Args:
+        client_key: An identifier for the anonymous caller, normally a
+            client IP. Not trustworthy (see the limiter's own comment) -
+            do not rely on this alone to bound cost.
+    """
+    _demo_intelligence_limiter.check(client_key)

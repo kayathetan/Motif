@@ -2,14 +2,19 @@
  * Demo mode: lets someone with the /demo link use the whole product without
  * creating an account. Intended for judges and reviewers.
  *
- * It only ever bypasses the client-side route gate (Protected.jsx). It grants
- * no token and no backend access - the FastAPI routes that cost money now
- * verify Clerk JWTs (see backend/src/services/auth.py), and a demo visitor is
- * unauthenticated to them, same as anyone else with no session. That's
- * deliberate: api.js checks isDemo() and skips calling those routes entirely
- * rather than making a request that would just 401 - see api.js's
- * DemoModeUnavailable and Brief.jsx/Market.jsx's 'demo' state for what a demo
- * visitor sees instead.
+ * It only ever bypasses the client-side route gate (Protected.jsx), and grants
+ * no token. What a tokenless visitor can reach is decided per route on the
+ * backend, not here:
+ *
+ *   GET  /api/intelligence/...  serves anonymous callers, so demo mode shows
+ *                               real aggregated market data. Its one GPT-4o
+ *                               call is cached per niche, which is what makes
+ *                               that affordable.
+ *   POST /api/brief/generate    requires a verified Clerk session. Every brief
+ *                               is a distinct, uncacheable GPT-4o call, so
+ *                               api.js short-circuits it in demo mode and
+ *                               throws DemoModeUnavailable - see Brief.jsx's
+ *                               'demo' state for what the visitor sees.
  */
 const KEY = 'motif:demo'
 
