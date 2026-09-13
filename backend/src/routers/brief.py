@@ -101,7 +101,7 @@ async def generate_brief(
 
     patterns, evidence_tier = query_similar_patterns(
         query,
-        n_results=6,
+        n_results=10,
         niche=canonical_niche,
         platform=request.platform,
         content_type=content_type,

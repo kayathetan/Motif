@@ -1,20 +1,18 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { ClerkLoaded, ClerkLoading, Show } from '@clerk/react'
 import ShaderBackground from '../components/ShaderBackground.jsx'
 import Nav from '../components/Nav.jsx'
-import { useBrief } from '../store.jsx'
 
 const product = [
   {
     kicker: 'Market research',
-    title: 'What your category actually rewards',
-    body: <>The dominant format, how fast the hook lands, which content and CTA types the top performers use, and the structural benchmark they hit. <b>A measured report, not a trend list</b></>
+    title: 'What your industry actually rewards',
+    body: <>Dominant format, hook timing, CTA type and the structural benchmark top performers hit — <b>measured, not guessed.</b></>
   },
   {
     kicker: 'Production',
     title: 'A brief your team can execute',
-    body: <>Hook options, a timestamped outline, pacing, lighting, shot and the approved CTA line, all derived from what the category measurably rewards. <b>A production document, not advice</b></>
+    body: <>Hooks, timestamped outline, pacing, shot list and CTA. <b>A production document, not advice.</b></>
   }
 ]
 
@@ -22,37 +20,27 @@ const teams = [
   {
     kicker: 'Brand marketing',
     title: 'Consistency across creators',
-    body: <>Ten creators briefed on instinct produce ten different structures. Briefed from Motif, they produce ten variations of <b>one structure that is known to work in your category.</b></>
+    body: <>Every creator briefed from <b>the same measured structure</b>, not ten different instincts.</>
   },
   {
     kicker: 'Social media managers',
     title: 'Volume without a strategist',
-    body: <>Structural decisions that previously required a strategist per campaign now take a form and twenty seconds. <b>The judgement is encoded, not outsourced.</b></>
+    body: <>Structural decisions that took a strategist per campaign now take a form and <b>20 seconds.</b></>
   },
   {
     kicker: 'Agencies',
     title: 'Defensible recommendations',
-    body: <>Every line in a Motif brief traces to measured behaviour in the client&apos;s own category. <b>Replaces &quot;trust us&quot; with a benchmark</b> in the room where the work gets approved.</>
+    body: <>Every line traces to measured behaviour in the client&apos;s own industry — <b>not &quot;trust us.&quot;</b></>
   }
 ]
 
 const steps = [
-  ['01', 'Define the campaign', 'Category, platform, target audience and the objective you are optimising for: reach, retention, shares or conversions'],
+  ['01', 'Define the campaign', 'Industry, platform, target audience and the objective you are optimising for: reach, retention, shares or conversions'],
   ['02', 'Receive the structure', 'A scene-by-scene production brief: hooks, timestamped outline, pacing, lighting, shot, on-screen text and the CTA line'],
   ['03', 'Shoot it', 'Hand the brief to your team or creator and produce against it directly']
 ]
 
 export default function Landing() {
-  const navigate = useNavigate()
-  const { update } = useBrief()
-  const [niche, setNiche] = useState('')
-
-  const submit = (e) => {
-    e.preventDefault()
-    if (niche.trim()) update({ niche: niche.trim() })
-    navigate('/signup')
-  }
-
   return (
     <>
       <div className="shaderhero" aria-hidden="true">
@@ -68,31 +56,22 @@ export default function Landing() {
       />
 
       <div className="hero">
-        <p className="kick">Market intelligence for short-form attention</p>
-        <h1>Attention is a market.<br />Enter it with research</h1>
+        <p className="kick">Content intelligence for marketing teams</p>
+        <h1>Not creative advice.<br />A production brief.</h1>
         <p className="sub">
-          Short-form video is where your category&apos;s attention gets priced. Motif measures what that market
-          rewards structurally, benchmarks your output against it and issues production briefs your team can execute.{' '}
-          <b>Research first, creative second</b>
+          Turning measured performance data into a scene-by-scene brief in 20 seconds.
+        </p>
+        <p className="sub" style={{ marginTop: 10, fontSize: 14.5, color: 'var(--ink-2)' }}>
+          Built from <b>46M+ measured views</b> across published short-form video.
         </p>
 
-        <form className="heroform" onSubmit={submit}>
-          <div className="row">
-            <input
-              value={niche}
-              onChange={(e) => setNiche(e.target.value)}
-              placeholder="Which category does your business compete in?"
-              aria-label="Your category"
-            />
-            <button className="btn-primary" type="submit">Run a brief</button>
-          </div>
-          <p className="under">Structural patterns measured from public short-form video</p>
-        </form>
+        <p style={{ marginTop: 30 }}>
+          <Link className="btn-primary" to="/signup">Get started →</Link>
+        </p>
 
         <div className="pills" style={{ marginTop: 34 }}>
-          <span className="pill">Category benchmarks</span>
+          <span className="pill">Industry benchmarks</span>
           <span className="pill">Hook timing</span>
-          <span className="pill">Format breakdown</span>
           <span className="pill">Briefs your team can execute</span>
         </div>
       </div>
@@ -126,7 +105,7 @@ export default function Landing() {
         </div>
 
         <div className="sec" id="product">
-          <h2>What a content programme cannot currently buy</h2>
+          <h2>What you get</h2>
           <div className="two">
             {product.map((c) => (
               <div className="card fc" key={c.title}>
@@ -139,7 +118,7 @@ export default function Landing() {
         </div>
 
         <div className="sec" id="teams">
-          <h2>Built for the teams briefing the work</h2>
+          <h2>Who it&apos;s for</h2>
           <div className="three">
             {teams.map((c) => (
               <div className="card fc" key={c.title}>
@@ -170,7 +149,7 @@ export default function Landing() {
           <div className="card tc" style={{ textAlign: 'center', padding: '56px 40px' }}>
             <p className="tl" style={{ color: 'var(--purple-deep)' }}>Get started</p>
             <h4 style={{ fontSize: 36, letterSpacing: '-.04em', marginTop: 14 }}>
-              See what your category is actually doing
+              See what your industry is actually doing
             </h4>
             {/* Asking a signed-in user to "create an account" reads as a
                 bug, so the two states get their own copy and destination.
@@ -187,13 +166,13 @@ export default function Landing() {
                 already signed in. */}
             <ClerkLoading>
               <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5, minHeight: 98 }}>
-                Run one brief against your own category.
+                Run one brief against your own industry.
               </p>
             </ClerkLoading>
             <ClerkLoaded>
               <Show when="signed-out">
                 <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
-                  Create a demo workspace and run one brief against your own category. No card required, nothing stored.
+                  Create a demo workspace and run one brief against your own industry. No card required, nothing stored.
                 </p>
                 <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
                   <Link className="btn-primary" to="/signup">Create an account →</Link>
@@ -204,7 +183,7 @@ export default function Landing() {
               </Show>
               <Show when="signed-in">
                 <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
-                  You&apos;re signed in. Head to your dashboard to run a brief against your category.
+                  You&apos;re signed in. Head to your dashboard to run a brief against your industry.
                 </p>
                 <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
                   <Link className="btn-primary" to="/dashboard">Go to your dashboard →</Link>
@@ -220,9 +199,8 @@ export default function Landing() {
 
       <div className="foot">
         <p>
-          <b>Motif</b> measures structure, not sentiment: hook timing, reveal order, cut rhythm and payoff placement,
-          derived from transcript timing across public content in your category.{' '}
-          <b>Visual and frame-level analysis is the next phase.</b>
+          <b>Motif</b> measures structure, not sentiment — hook timing, reveal order, cut rhythm and payoff placement,
+          from real published content in your industry.
         </p>
         <ClerkLoaded>
           <Show when="signed-out"><Link className="btn-dark" to="/signup">Book a demo →</Link></Show>

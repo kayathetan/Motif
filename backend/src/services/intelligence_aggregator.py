@@ -180,7 +180,7 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
     )
 
 
-REFERENCE_VIDEOS_LIMIT = 10
+REFERENCE_VIDEOS_LIMIT = 7
 
 
 def summarize_evidence(patterns: list[dict], tier: str) -> EvidenceSummary:
