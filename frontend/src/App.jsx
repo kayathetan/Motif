@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { BriefProvider } from './store.jsx'
 
 import Landing from './pages/Landing.jsx'
@@ -29,6 +29,15 @@ export default function App() {
         <Route path="/market" element={<Protected><Market /></Protected>} />
         <Route path="/brief" element={<Protected><Brief /></Protected>} />
         <Route path="/briefs/:id" element={<Protected><SavedBrief /></Protected>} />
+
+        {/* Without this, an unmatched path renders nothing at all - a blank
+            white page with no nav and no way back. /choose and /vision were
+            real URLs until they were folded into /dashboard and /inputs, so
+            a bookmark or a shared link still points at them. Redirect rather
+            than a 404 page: every one of these is a moved page or a typo, not
+            a destination worth designing. replace so it doesn't trap the
+            back button. */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BriefProvider>
   )
