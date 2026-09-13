@@ -4,10 +4,10 @@
 import os
 from pathlib import Path
 
-import psycopg
 from dotenv import load_dotenv
 from pgvector.psycopg import register_vector
 from psycopg.rows import dict_row
+from psycopg_pool import ConnectionPool
 
 from src.services.embeddings import generate_embedding
 
@@ -15,20 +15,45 @@ from src.services.embeddings import generate_embedding
 # doesn't reliably find backend/.env depending on the process's cwd.
 load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
+# A shared pool of already-open connections, not a fresh psycopg.connect()
+# per call. Measured live: opening one connection against Supabase's
+# pooler took ~450ms - TCP + TLS + Postgres auth - against ~45ms for the
+# query it was about to run. Every route that touches the DB (brief
+# generation, intelligence, the dashboard's profile/briefs fetches) was
+# paying that ~450ms tax on every single request; reusing a small set of
+# already-open connections across requests removes nearly all of it.
+#
+# configure=register_vector runs once per underlying connection when the
+# pool creates it (pgvector type registration is per-connection state,
+# same as before), not on every checkout.
+#
+# min_size=1 keeps one connection warm from process start rather than
+# waiting for the first request to pay for it; max_size=5 is comfortably
+# above what this API's traffic needs today without holding open more
+# Supabase connections than it will use. open=True so the pool's initial
+# connection(s) are already established by the time this module finishes
+# importing (main.py imports the routers, which import this), instead of
+# lazily on whichever request happens to arrive first.
+_pool = ConnectionPool(
+    os.environ["DATABASE_URL"],
+    min_size=1,
+    max_size=5,
+    kwargs={"row_factory": dict_row},
+    configure=register_vector,
+    open=True,
+)
 
-def get_connection() -> psycopg.Connection:
-    """
-    Open a new connection to the Supabase Postgres database, with the
-    pgvector type adapter registered and dict-style row results enabled.
 
-    Returns:
-        An open psycopg Connection. Use as a context manager
-        (`with get_connection() as conn:`) so it's closed automatically.
+def get_connection():
     """
-    database_url = os.environ["DATABASE_URL"]
-    conn = psycopg.connect(database_url, row_factory=dict_row)
-    register_vector(conn)
-    return conn
+    Borrow a connection from the shared pool.
+
+    Use as a context manager, same as before this was pooled
+    (`with get_connection() as conn:`) - the connection returns to the
+    pool when the block exits instead of closing, so no caller needed to
+    change.
+    """
+    return _pool.connection()
 
 
 MIN_PATTERNS_BEFORE_BROADENING = 3
