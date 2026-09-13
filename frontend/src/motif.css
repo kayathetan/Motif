@@ -150,20 +150,10 @@ a{color:inherit;text-decoration:none}
   box-shadow:0 1px 2px rgba(76,29,149,.04),0 8px 24px rgba(76,29,149,.05)}
 
 /* ---------- script outline bands ---------- */
-.band{display:grid;grid-template-columns:128px 190px 1fr 300px;gap:28px;align-items:center;
+.band{display:grid;grid-template-columns:128px 1fr 300px;gap:28px;align-items:center;
   padding:20px;margin-bottom:14px}
 .band .tm{font-size:19px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .band .dur{font-size:11px;color:var(--label);margin-top:5px}
-.frame{position:relative;width:190px;height:238px;border-radius:10px;overflow:hidden}
-.subj{position:absolute;background:rgba(60,40,24,.30);border-radius:3px}
-.thirds{position:absolute;inset:0}
-.thirds i{position:absolute;background:rgba(255,255,255,.24)}
-.thirds i.v1{left:33.33%;top:0;bottom:0;width:1px}
-.thirds i.v2{left:66.66%;top:0;bottom:0;width:1px}
-.thirds i.h1{top:33.33%;left:0;right:0;height:1px}
-.thirds i.h2{top:66.66%;left:0;right:0;height:1px}
-.ov{position:absolute;font-weight:590;color:#FFF;font-size:14px;line-height:1.15;
-  letter-spacing:-.015em;text-shadow:0 1px 7px rgba(0,0,0,.5)}
 .mid h3{font-size:27px;font-weight:590;letter-spacing:-.038em;line-height:1.1}
 .mid p{font-size:14.5px;color:var(--ink-2);line-height:1.6;margin-top:10px;max-width:46ch}
 .mid p b{color:var(--ink);font-weight:560}
@@ -388,7 +378,7 @@ a{color:inherit;text-decoration:none}
 .step p{font-size:13.5px;color:var(--ink-2);line-height:1.55;margin-top:8px}
 
 @media (max-width:1200px){
-  .band{grid-template-columns:110px 150px 1fr;gap:20px}
+  .band{grid-template-columns:100px 1fr;gap:20px}
   .band .spec{grid-column:1 / -1;border-left:none;border-top:1px solid var(--line);padding:14px 0 0}
   .signals,.trio,.hooks,.refs{grid-template-columns:1fr 1fr}
   .gap{grid-template-columns:1fr 1fr}

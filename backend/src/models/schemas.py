@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Literal
 
 
@@ -51,12 +51,98 @@ class BrandProfile(BaseModel):
 
 
 class ScriptBeat(BaseModel):
-    timestamp: str  # e.g. "0-3s"
-    action: str
+    """
+    One beat of the shot-by-shot script outline. Deliberately shot-list
+    specific (format/camera/lighting/on-screen text/audio per beat, not
+    just "what happens") - a beat that only says what happens and leaves
+    the how to the reader isn't something a team or creator can shoot
+    from without a separate planning pass, which defeats the point of a
+    production-ready brief. Field descriptions double as the instruction
+    to the model (OpenAI structured outputs sends these to the model as
+    part of the schema) - see brief_generator.py's header on this pattern.
+
+    Every field added here after timestamp/action shipped is `| None`
+    even though brief_generator.py always fills them in for a NEW
+    generation: saved_briefs.py stores each generated brief as a JSONB
+    blob (see migrations/0008) and reloads it straight into this same
+    model on GET /api/briefs/{id} - a brief saved before this field
+    existed has no key for it at all, and a required field would turn
+    every pre-existing saved brief into a 500 the moment someone clicks
+    back into it. BriefContent.jsx already renders a missing value as a
+    blank line rather than erroring, so this degrades instead of breaking.
+    """
+
+    timestamp: str = Field(description='Time range for this beat, e.g. "0-2s".')
+    duration_seconds: float | None = Field(
+        default=None, description="This beat's length in seconds, e.g. 2."
+    )
+    heading: str | None = Field(
+        default=None,
+        description='Short scene label a producer would use to refer to this beat in conversation, '
+        '2-4 words, e.g. "Result first", "Setup and tension" - not a restatement of the action.',
+    )
+    action: str = Field(
+        description="What happens in this beat and, briefly, why this choice follows from the retrieved "
+        "evidence - one to two sentences, specific enough to shoot from directly."
+    )
+    shot_style: str | None = Field(
+        default=None,
+        description='The overall format of this beat, e.g. "Talking head, no voiceover yet" or '
+        '"Product macro, no face in frame".',
+    )
+    camera: str | None = Field(
+        default=None,
+        description='Framing and camera movement, e.g. "Close-up, handheld, slight push in" or '
+        '"Medium, static on tripod".',
+    )
+    lighting: str | None = Field(
+        default=None,
+        description='The lighting setup for this beat, e.g. "Soft window key, front-left 45°", or '
+        '"Unchanged - hold continuity" when it should match the previous beat.',
+    )
+    on_screen_caption: str | None = Field(
+        default=None,
+        description="The exact on-screen text overlay for this beat, verbatim, e.g. \"3 weeks\". "
+        "Null if this beat has no on-screen text.",
+    )
+    on_screen_text_style: str | None = Field(
+        default=None,
+        description='How the caption is styled and placed, e.g. "lowercase, bottom third". '
+        'If on_screen_caption is null, explain why, e.g. "None - let the voice carry."',
+    )
+    audio: str | None = Field(
+        default=None,
+        description='Audio direction for this beat, e.g. "Trending audio cold, full volume" or '
+        '"Voice in, music ducks under".',
+    )
+
+
+class HookOption(BaseModel):
+    """
+    One of the three hook choices. A bare opening line leaves the reader
+    to guess which of the three to pick and how to actually perform it -
+    style/why_it_works/delivery_note answer exactly that, per user
+    feedback that the plain-string version read as too empty.
+    """
+
+    text: str = Field(description="The hook line itself - what's said or shown in the opening 1-3 seconds.")
+    style: str = Field(
+        description='Short style tag for this hook, e.g. "Bold claim", "Pattern interrupt", "Question hook", '
+        '"Result first" - reuse a hook_style already visible in the retrieved patterns where one genuinely fits, '
+        "rather than inventing a near-duplicate label."
+    )
+    why_it_works: str = Field(
+        description="One line tying this hook back to the retrieved evidence - which pattern(s) it draws on "
+        "and why that structure suits this niche/goal. Do not cite a statistic that isn't in the supplied evidence."
+    )
+    delivery_note: str = Field(
+        description="How to perform it - pacing, tone, where the emphasis lands, e.g. \"Deadpan, straight to "
+        'camera, no pause before the payoff word."'
+    )
 
 
 class BriefResponse(BaseModel):
-    hook_options: list[str] = Field(min_length=3, max_length=3)  # 3 specific opening lines
+    hook_options: list[HookOption] = Field(min_length=3, max_length=3)  # 3 specific opening lines
     # Named content_format, not format: a field literally named "format"
     # is unreliable under OpenAI's structured outputs - confirmed by direct
     # testing to return garbage (e.g. the schema's own class name) in most
@@ -68,6 +154,27 @@ class BriefResponse(BaseModel):
     audio_direction: str
     cta: str
     hashtags: list[str]
+
+    @field_validator("hook_options", mode="before")
+    @classmethod
+    def _coerce_legacy_hook_options(cls, value):
+        """
+        hook_options used to be list[str] before this field existed - see
+        the same backward-compatibility concern documented on ScriptBeat.
+        A brief saved under the old shape has plain strings in its stored
+        JSONB (migrations/0008); without this, GET /api/briefs/{id} would
+        500 the moment someone clicked back into one of those. Wrap a bare
+        string into a HookOption with the new fields left blank rather
+        than fabricating a style/rationale for a hook that never had one.
+        """
+        if not isinstance(value, list):
+            return value
+        return [
+            {"text": item, "style": "", "why_it_works": "", "delivery_note": ""}
+            if isinstance(item, str)
+            else item
+            for item in value
+        ]
 
 
 class BriefGenerationResponse(BriefResponse):

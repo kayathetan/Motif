@@ -112,6 +112,27 @@ A strong brief should tell the creator:
 - what visual treatment fits,
 - what emotional mechanism is likely to work,
 - and why those decisions follow from the retrieved evidence.
+
+EVERY beat in script_outline must be shot-list specific, not a one-line
+description of what happens. For each beat, decide and state:
+- the shot format and framing (e.g. talking head vs. product macro; close-up,
+  handheld vs. medium, static on tripod),
+- the lighting setup, or that it should hold continuity with the previous beat,
+- the exact on-screen caption text where one is called for (verbatim, not
+  "add relevant text") and how it's styled/placed - or that this beat
+  deliberately carries no on-screen text, and why,
+- the audio direction (trending audio cold vs. voice-led with music ducked
+  under, etc).
+A beat a creator could not shoot directly from without guessing is not
+specific enough - vague placeholders like "engaging visual" or "add text
+here" are a failure of this brief, not an acceptable shorthand.
+
+The 3 hook_options must be meaningfully different from each other - different
+style/angle, not the same line reworded - so they're an actual choice, not
+three phrasings of one idea. Each one's why_it_works must name the specific
+pattern(s) it draws on; if the evidence is weak or sparse (see rule 9 above),
+say that plainly instead of asserting a rationale the evidence doesn't
+support.
 """
 
 

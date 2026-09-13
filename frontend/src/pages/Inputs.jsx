@@ -97,9 +97,10 @@ export default function Inputs() {
               <textarea
                 id="vision"
                 style={{ minHeight: 140 }}
-                value={brief.vision || SAMPLE_VISION}
+                value={brief.vision}
                 onChange={(e) => update({ vision: e.target.value })}
-                placeholder="What the piece is, why now, and what it should make the viewer feel."
+                placeholder={SAMPLE_VISION}
+                required
               />
               <p className="hint">
                 This shapes tone, hook framing and how hard the CTA pushes.{' '}
@@ -112,8 +113,9 @@ export default function Inputs() {
               <label htmlFor="topic">Subject in one line</label>
               <input
                 id="topic"
-                value={brief.topic || 'one ingredient that fixed my skin barrier in three weeks'}
+                value={brief.topic}
                 onChange={(e) => update({ topic: e.target.value })}
+                placeholder="one ingredient that fixed my skin barrier in three weeks"
                 autoComplete="off"
               />
               <p className="hint">The sentence a viewer would use to describe it afterwards.</p>

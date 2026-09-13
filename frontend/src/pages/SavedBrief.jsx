@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@clerk/react'
 import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
 import Pills from '../components/Pills.jsx'
 import BriefContent from '../components/BriefContent.jsx'
-import { fetchSavedBrief, DemoModeUnavailable } from '../api.js'
+import { useBrief } from '../store.jsx'
+import { fetchSavedBrief, fetchIntelligence, platformLabel, DemoModeUnavailable } from '../api.js'
 
 /**
  * A past brief, fetched back by id from the dashboard's history list
@@ -19,7 +20,10 @@ import { fetchSavedBrief, DemoModeUnavailable } from '../api.js'
 export default function SavedBrief() {
   const { id } = useParams()
   const { getToken } = useAuth()
+  const navigate = useNavigate()
+  const { update } = useBrief()
   const [state, setState] = useState({ status: 'loading', data: null, error: null })
+  const [intelligence, setIntelligence] = useState({ status: 'loading', data: null })
 
   useEffect(() => {
     let cancelled = false
@@ -44,6 +48,36 @@ export default function SavedBrief() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  // A saved row stores platform in the backend's shape ('youtube_shorts'),
+  // not the frontend label fetchIntelligence/store.jsx expect - see
+  // api.js's platformLabel(). Runs once the brief itself has loaded.
+  const niche = state.data?.niche
+  const platform = state.data ? platformLabel(state.data.platform) : null
+
+  useEffect(() => {
+    if (!niche || !platform) return
+    let cancelled = false
+    setIntelligence({ status: 'loading', data: null })
+
+    fetchIntelligence(niche, platform, getToken)
+      .then((data) => {
+        if (!cancelled) setIntelligence(data ? { status: 'ready', data } : { status: 'empty', data: null })
+      })
+      .catch(() => {
+        if (!cancelled) setIntelligence({ status: 'error', data: null })
+      })
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [niche, platform])
+
+  const viewMarket = () => {
+    update({ niche, platform })
+    navigate('/market')
+  }
 
   return (
     <>
@@ -97,7 +131,7 @@ export default function SavedBrief() {
             <Pills
               brief={{
                 niche: state.data.niche,
-                platform: state.data.platform,
+                platform,
                 audience: state.data.audience,
                 objectives: [state.data.goal],
               }}
@@ -107,7 +141,12 @@ export default function SavedBrief() {
               <Link className="btn-ghost" to="/dashboard">← Back to dashboard</Link>
               <button className="btn-dark" type="button" onClick={() => window.print()}>Download as PDF ⭳</button>
             </div>
-            <BriefContent data={state.data.brief} niche={state.data.niche} />
+            <BriefContent
+              data={state.data.brief}
+              niche={state.data.niche}
+              intelligence={intelligence}
+              onViewMarket={viewMarket}
+            />
           </>
         )}
       </div>

@@ -1,28 +1,41 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@clerk/react'
 import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
 import Pills from '../components/Pills.jsx'
 import BriefContent from '../components/BriefContent.jsx'
 import { useBrief } from '../store.jsx'
-import { generateBrief, DemoModeUnavailable } from '../api.js'
+import { generateBrief, fetchIntelligence, DemoModeUnavailable } from '../api.js'
 
 export default function Brief() {
   const { brief } = useBrief()
   const { getToken } = useAuth()
+  const navigate = useNavigate()
   const [state, setState] = useState({ status: 'loading', data: null, error: null })
+  // Separate from `state`: the market snapshot is supplementary, not part
+  // of what "the brief is ready" means, and its own fetch failing (or the
+  // niche having no stored patterns yet) shouldn't block or blank the
+  // actual brief. See BriefContent's docstring.
+  const [intelligence, setIntelligence] = useState({ status: 'loading', data: null })
 
   useEffect(() => {
-    let cancelled = false
+    // AbortController, not just a `cancelled` flag: this request has a
+    // real side effect on the backend (it saves the brief to history), so
+    // an unmount needs to actually cancel the network call, not just
+    // ignore its result once it lands. Otherwise React 18 StrictMode's
+    // dev-only double-invoked effect fires this twice in a row - both
+    // requests complete, both save - so what looks like "generated once"
+    // shows up twice in the dashboard's previous-briefs list.
+    const controller = new AbortController()
     setState({ status: 'loading', data: null, error: null })
 
-    generateBrief(brief, getToken)
+    generateBrief(brief, getToken, controller.signal)
       .then((data) => {
-        if (!cancelled) setState({ status: 'ready', data, error: null })
+        setState({ status: 'ready', data, error: null })
       })
       .catch((error) => {
-        if (cancelled) return
+        if (error.name === 'AbortError') return
         if (error instanceof DemoModeUnavailable) {
           setState({ status: 'demo', data: null, error })
         } else {
@@ -31,7 +44,7 @@ export default function Brief() {
       })
 
     return () => {
-      cancelled = true
+      controller.abort()
     }
     // Regenerate only when the campaign inputs actually change, not on
     // every render - getToken is a new function reference from useAuth()
@@ -39,6 +52,26 @@ export default function Brief() {
     // generation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brief.niche, brief.platform, brief.audience, brief.objectives, brief.tone])
+
+  useEffect(() => {
+    let cancelled = false
+    setIntelligence({ status: 'loading', data: null })
+
+    // A GET with no side effect, unlike generateBrief above - no need for
+    // an AbortController here, just ignore a late result on unmount.
+    fetchIntelligence(brief.niche, brief.platform, getToken)
+      .then((data) => {
+        if (!cancelled) setIntelligence(data ? { status: 'ready', data } : { status: 'empty', data: null })
+      })
+      .catch(() => {
+        if (!cancelled) setIntelligence({ status: 'error', data: null })
+      })
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brief.niche, brief.platform])
 
   return (
     <>
@@ -95,7 +128,14 @@ export default function Brief() {
           </div>
         )}
 
-        {state.status === 'ready' && <BriefContent data={state.data} niche={brief.niche} />}
+        {state.status === 'ready' && (
+          <BriefContent
+            data={state.data}
+            niche={brief.niche}
+            intelligence={intelligence}
+            onViewMarket={() => navigate('/market')}
+          />
+        )}
       </div>
 
       <div className="foot">

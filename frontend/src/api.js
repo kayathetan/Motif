@@ -45,6 +45,22 @@ const PLATFORM_TO_BACKEND = {
   'YouTube Shorts': 'youtube_shorts',
 }
 
+// The reverse of the above - a saved brief (SavedBrief.jsx) stores the
+// backend's value (see SavedBriefSummary.platform), but everything that
+// reads from store.jsx's campaign-inputs shape, including fetchIntelligence
+// below, expects the frontend label. Exported so callers with a stored
+// backend value (rather than live form state) can convert back before
+// using it as a niche/platform lookup.
+const BACKEND_TO_PLATFORM = {
+  reels: 'Instagram Reels',
+  tiktok: 'TikTok',
+  youtube_shorts: 'YouTube Shorts',
+}
+
+export function platformLabel(backendPlatform) {
+  return BACKEND_TO_PLATFORM[backendPlatform] || backendPlatform
+}
+
 // The backend takes one goal; the campaign form allows selecting several
 // objectives. First selected wins - matching the "where objectives
 // conflict, the first takes precedence" rule already stated on the Inputs
@@ -96,14 +112,22 @@ export function toBriefRequest(brief) {
  *   brief: The campaign inputs (store.jsx shape).
  *   getToken: Clerk's useAuth().getToken, so the request carries a real
  *     session token - the backend now requires one.
+ *   signal: Optional AbortSignal. This POST has a real side effect on the
+ *     backend (it saves the generated brief to the user's history), so
+ *     the caller needs a way to actually cancel the in-flight request -
+ *     not just ignore its result - when the component unmounts before it
+ *     resolves. See Brief.jsx: without this, React 18 StrictMode's
+ *     dev-only double-invoked effect fired this twice on every page load,
+ *     saving two identical rows for what the user did once.
  */
-export async function generateBrief(brief, getToken) {
+export async function generateBrief(brief, getToken, signal) {
   if (isDemo()) throw new DemoModeUnavailable()
 
   const res = await fetch('/api/brief/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(await authHeaders(getToken)) },
     body: JSON.stringify(toBriefRequest(brief)),
+    signal,
   })
   if (!res.ok) {
     const body = await res.text()
