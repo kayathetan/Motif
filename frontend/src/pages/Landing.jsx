@@ -60,11 +60,9 @@ export default function Landing() {
       </div>
       <Nav
         links={[
-          { label: 'Market', to: '/market' },
           { label: 'Product', href: '#product' },
           { label: 'For teams', href: '#teams' },
-          { label: 'How it works', href: '#how' },
-          { label: 'Pricing' }
+          { label: 'How it works', href: '#how' }
         ]}
       />
 

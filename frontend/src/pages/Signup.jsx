@@ -6,7 +6,7 @@ export default function SignupPage() {
   return (
     <>
       <Mesh />
-      <Nav variant="back" links={[{ label: 'Market', to: '/market' }]} />
+      <Nav variant="back" />
       <div className="sheet">
         <div className="authcard">
           <SignUp signInUrl="/signin" forceRedirectUrl="/inputs" />
