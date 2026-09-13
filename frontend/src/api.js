@@ -42,6 +42,15 @@ export function toBriefRequest(brief) {
     goal: OBJECTIVE_TO_GOAL[brief.objectives[0]] || 'engagement',
     audience: brief.audience,
     brand_vibe: TONE_TO_VIBE[brief.tone[0]] || 'fun',
+    // These are already collected by Vision.jsx/Inputs.jsx but previously
+    // never left the frontend. No new UI - content_type has no dedicated
+    // control at all; the backend infers it from creative_vision/topic
+    // when relevant (see brief_generator.infer_content_type).
+    creative_vision: brief.vision || null,
+    topic: brief.topic || null,
+    resources: brief.resources?.length ? brief.resources : null,
+    duration: brief.duration || null,
+    constraints: brief.constraints || null,
   }
 }
 
@@ -55,6 +64,25 @@ export async function generateBrief(brief) {
   if (!res.ok) {
     const body = await res.text()
     throw new Error(`Brief generation failed (${res.status}): ${body || res.statusText}`)
+  }
+  return res.json()
+}
+
+/**
+ * GET /api/intelligence/{niche}/{platform}. Returns null (not a throw) on a
+ * 404 - no patterns for this niche/platform yet is an expected, normal
+ * state (e.g. a brand-new niche, or the library hasn't been built yet),
+ * not an error condition for the caller to handle specially.
+ */
+export async function fetchIntelligence(niche, platform) {
+  const backendPlatform = PLATFORM_TO_BACKEND[platform] || 'tiktok'
+  const res = await fetch(
+    `/api/intelligence/${encodeURIComponent(niche)}/${encodeURIComponent(backendPlatform)}`
+  )
+  if (res.status === 404) return null
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Intelligence fetch failed (${res.status}): ${body || res.statusText}`)
   }
   return res.json()
 }

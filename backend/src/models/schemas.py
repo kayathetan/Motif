@@ -18,6 +18,15 @@ class BriefRequest(BaseModel):
     # since content type is what determines structural comparability
     # here, not the product/topic. See retrieval.query_similar_patterns.
     content_type: str | None = None
+    # These already exist in the frontend's campaign-inputs flow (Vision.jsx
+    # collects all of them) but previously never reached the backend at
+    # all - api.js's toBriefRequest() only forwarded niche/platform/goal/
+    # audience/brand_vibe. Optional here so existing callers don't break.
+    creative_vision: str | None = None  # free-text creative direction
+    topic: str | None = None  # one-line subject, e.g. "our new serum launch"
+    resources: list[str] | None = None  # e.g. ["Phone only", "Tripod"]
+    duration: str | None = None  # target length, e.g. "0:45"
+    constraints: str | None = None  # brand guidelines, legal, etc.
 
 
 class ScriptBeat(BaseModel):

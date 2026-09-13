@@ -7,7 +7,10 @@
 from fastapi import APIRouter
 
 from src.models.schemas import BriefRequest, BriefResponse
-from src.services.brief_generator import generate_brief as generate_brief_from_patterns
+from src.services.brief_generator import (
+    generate_brief as generate_brief_from_patterns,
+)
+from src.services.brief_generator import infer_content_type
 from src.services.retrieval import query_similar_patterns
 
 router = APIRouter()
@@ -30,13 +33,22 @@ async def generate_brief(request: BriefRequest) -> BriefResponse:
         f"{request.goal}, targeting {request.audience}, with a "
         f"{request.brand_vibe} brand vibe."
     )
-    if request.content_type:
-        query += f" Content type: {request.content_type}."
+    if request.creative_vision:
+        query += f" Creative vision: {request.creative_vision}"
+    if request.topic:
+        query += f" Topic: {request.topic}."
+
+    # No dedicated UI control for this - inferred from creative_vision/topic
+    # when not explicitly set. See infer_content_type()'s docstring.
+    content_type = infer_content_type(request)
+    if content_type:
+        query += f" Content type: {content_type}."
+
     patterns = query_similar_patterns(
         query,
         n_results=6,
         niche=request.niche,
         platform=request.platform,
-        content_type=request.content_type,
+        content_type=content_type,
     )
     return generate_brief_from_patterns(patterns, request)

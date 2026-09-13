@@ -36,6 +36,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from pydantic import BaseModel
 
 from src.models.schemas import BriefRequest, BriefResponse, Pattern
 
@@ -69,6 +70,12 @@ You must reason from the supplied evidence and adapt it to:
 - content goal
 - target audience
 - brand vibe
+- their creative vision and topic, when given - these describe what THIS
+  specific video should be, on top of the general niche patterns
+- their production resources, when given - only specify shots the
+  production can actually deliver (e.g. no locked-off tripod shot if
+  they only have a phone)
+- their duration target and any constraints, when given
 
 RULES:
 
@@ -141,6 +148,58 @@ def _prepare_patterns(patterns: list[dict]) -> list[dict]:
         _serialise_pattern(pattern)
         for pattern in patterns[:MAX_PATTERNS]
     ]
+
+
+class _ContentTypeInference(BaseModel):
+    content_type: str | None
+
+
+def infer_content_type(request: BriefRequest) -> str | None:
+    """
+    Infer a content_type from the user's own creative_vision/topic text,
+    when they haven't explicitly set one on the request.
+
+    There's no dedicated UI control for content_type - this rides on
+    fields the frontend already collects (Vision.jsx's "creative vision"
+    and "topic in one line") instead of adding one, so a business asking
+    for e.g. "a fun team culture video" gets routed to content_type
+    retrieval (see retrieval.query_similar_patterns's cross-industry
+    fallback tier) without needing to know that axis exists.
+
+    Args:
+        request: The user's brief request.
+
+    Returns:
+        A content_type string, or None if content_type was already set,
+        no vision/topic text was given, or nothing in it clearly signals
+        a specific type - never force a guess from vague text.
+    """
+    if request.content_type:
+        return request.content_type
+    if not request.creative_vision and not request.topic:
+        return None
+
+    prompt = f"""
+Given a business's creative direction for a short-form video, infer which
+content_type category (if any) they are CLEARLY asking for - e.g.
+"product_demo", "routine_tutorial", "reaction_commentary",
+"culture_relatable", "haul_roundup", "educational_explainer",
+"testimonial_ugc", "before_after_transformation", "trailer_promo".
+
+Creative vision: {request.creative_vision or "(not specified)"}
+Topic: {request.topic or "(not specified)"}
+
+Return null unless the text clearly signals one specific type - do not
+guess from vague or generic descriptions.
+"""
+    response = client.responses.parse(
+        model=BRIEF_MODEL,
+        input=[{"role": "user", "content": prompt}],
+        text_format=_ContentTypeInference,
+    )
+    if response.output_parsed is None:
+        return None
+    return response.output_parsed.content_type
 
 
 def generate_brief(
