@@ -1,0 +1,336 @@
+<mxfile host="app.diagrams.net" agent="claude-code">
+  <diagram id="motif-backend-pipelines" name="Backend Pipelines">
+    <mxGraphModel dx="5883" dy="1920" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1900" pageHeight="990" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c_ingestion" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#6c8ebf;dashed=1;verticalAlign=top;align=left;fontSize=14;fontStyle=1;spacingLeft=10;spacingTop=8;" value="OFFLINE INGESTION PIPELINE  ·  pipeline/  (entry point: python -m pipeline.build_library)" vertex="1">
+          <mxGeometry height="1146.5" width="1601" x="-871" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="n_title" parent="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" value="Motif — Backend Architecture (accounts, saved-brief history, evidence/reference-video grounding, pooled DB connections)" vertex="1">
+          <mxGeometry height="30" width="1300" x="60" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="n_yt_api" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="YouTube Data API v3&#xa;(googleapiclient)" vertex="1">
+          <mxGeometry height="50" width="240" x="-170" y="295" as="geometry" />
+        </mxCell>
+        <mxCell id="n_yt_transcript" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="YouTube Transcript API" vertex="1">
+          <mxGeometry height="50" width="240" x="430" y="293" as="geometry" />
+        </mxCell>
+        <mxCell id="n_openai" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" value="OpenAI API&#xa;embeddings: text-embedding-3-small (patterns, topic labels, niche/content_type labels)  ·  gpt-4o-mini (topic summary, niche tie-break, content-type inference)  ·  gpt-4o (vision pattern extraction, brief synthesis, trend synthesis)" vertex="1">
+          <mxGeometry height="50" width="780" x="703" y="271.5" as="geometry" />
+        </mxCell>
+        <mxCell id="n_clerk" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Clerk&#xa;session issuing (frontend) + JWT verification (backend, clerk_backend_api) — authenticated_user (hard gate, brief.py) and optional_user (soft, returns None instead of 401 — anonymous demo reads on intelligence.py)" vertex="1">
+          <mxGeometry height="75" width="397" x="2708" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="n_urls_json" parent="1" style="shape=note;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;size=14;fontSize=12;" value="pipeline/data/video_urls.json&#xa;(flat list of YouTube URLs)" vertex="1">
+          <mxGeometry height="50" width="220" x="-400" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="n_build_library" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;fontStyle=1;" value="build_library.py&#xa;main(): for each URL → process_video()" vertex="1">
+          <mxGeometry height="50" width="281" x="158" y="385" as="geometry" />
+        </mxCell>
+        <mxCell id="n_fetch_metadata" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="youtube_fetcher.py&#xa;fetch_video_metadata()&#xa;title, views, likes, duration, published_at, description" vertex="1">
+          <mxGeometry height="55" width="300" x="-60" y="495" as="geometry" />
+        </mxCell>
+        <mxCell id="n_fetch_transcript" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="youtube_fetcher.py&#xa;fetch_transcript()&#xa;timestamped transcript segments; falls back to the video description when transcripts are disabled" vertex="1">
+          <mxGeometry height="55" width="300" x="400" y="485" as="geometry" />
+        </mxCell>
+        <mxCell id="n_compute_signals" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="youtube_fetcher.py&#xa;compute_structural_signals()&#xa;code-only (no LLM): hook_delivery_seconds, cta_placement_percent (None if undetected), words_per_minute ×3 thirds" vertex="1">
+          <mxGeometry height="75" width="310" x="65" y="662.5" as="geometry" />
+        </mxCell>
+        <mxCell id="n_generate_topic_summary" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="classify_niche.py&#xa;generate_topic_summary()&#xa;plain WHAT-it&#39;s-about sentence (structure-free, on purpose)" vertex="1">
+          <mxGeometry height="65" width="300" x="70" y="817.5" as="geometry" />
+        </mxCell>
+        <mxCell id="n_classify_niche" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="classify_niche.py&#xa;classify_niche()&#xa;cosine sim vs. per-niche centroid (topic_embedding); HIGH→auto, MID→LLM tie-break, else no match. Centroids cached for the run; invalidated after each store." vertex="1">
+          <mxGeometry height="65" width="300" x="-460" y="594.5" as="geometry" />
+        </mxCell>
+        <mxCell id="n_skip_video" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;fontSize=11;" value="niche = None → video skipped (not stored); logged in build_library.py&#39;s end-of-run summary" vertex="1">
+          <mxGeometry height="36" width="300" x="-860" y="609" as="geometry" />
+        </mxCell>
+        <mxCell id="n_download_extract_frames" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="video_processor.py&#xa;download_video() + extract_frames()&#xa;yt-dlp (lowest quality) → ffmpeg samples ~10 frames: hook / every 5s / CTA" vertex="1">
+          <mxGeometry height="65" width="300" x="-260" y="915" as="geometry" />
+        </mxCell>
+        <mxCell id="n_extract_pattern" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="pattern_extractor.py&#xa;extract_pattern()&#xa;GPT-4o multimodal, structured JSON (responses.parse) → Pattern fields" vertex="1">
+          <mxGeometry height="65" width="300" x="240" y="915" as="geometry" />
+        </mxCell>
+        <mxCell id="n_pipeline_taxonomy" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="pipeline/taxonomy.py&#xa;canonicalize_content_type()&#xa;exact-match fast path, else embedding-match against content_types; merges near-duplicates before anything is stored" vertex="1">
+          <mxGeometry height="80" width="310" x="230" y="1075" as="geometry" />
+        </mxCell>
+        <mxCell id="n_store_pattern" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" value="store_patterns.py&#xa;store_pattern()&#xa;inserts niche/content_type into lookup tables WITH a label embedding (if new), then upserts document+embedding into patterns (on conflict video_url do update)" vertex="1">
+          <mxGeometry height="80" width="310" x="230" y="1245" as="geometry" />
+        </mxCell>
+        <mxCell id="c_db" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#82b366;dashed=1;verticalAlign=top;align=left;fontSize=14;fontStyle=1;spacingLeft=10;spacingTop=8;" value="SHARED DATABASE  ·  Supabase (Postgres + pgvector)" vertex="1">
+          <mxGeometry height="497" width="240" x="780" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="n_patterns_table" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" value="patterns&#xa;video_url (unique) · title · views · niche→FK · content_type→FK · hook_*, visual_*, cta_*, pacing, success_factors[] · document + embedding vector(1536) · topic_summary + topic_embedding" vertex="1">
+          <mxGeometry height="110" width="200" x="800" y="645" as="geometry" />
+        </mxCell>
+        <mxCell id="n_niches_table" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" value="niches&#xa;name (PK) · embedding vector(1536) — label embedding, for taxonomy.py&#39;s similarity match" vertex="1">
+          <mxGeometry height="50" width="200" x="800" y="765" as="geometry" />
+        </mxCell>
+        <mxCell id="n_content_types_table" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" value="content_types&#xa;name (PK) · embedding vector(1536) — label embedding, for taxonomy.py&#39;s similarity match" vertex="1">
+          <mxGeometry height="50" width="200" x="800" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="n_accounts_tables" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;spacingLeft=6;" value="brand_profiles &amp; saved_briefs&#xa;brand_profiles: user_id (PK), organization_name, description · saved_briefs: id, user_id, niche, platform, goal, audience, topic, brief jsonb, created_at" vertex="1">
+          <mxGeometry height="70" width="200" x="800" y="885" as="geometry" />
+        </mxCell>
+        <mxCell id="n_conn_pool" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;fontSize=10;align=left;spacingLeft=6;" value="retrieval.py&#xa;get_connection() — pooled (psycopg_pool.ConnectionPool, min=1 max=5, opened eagerly at import), not a fresh connect() per call. Measured: ~450ms/connect vs ~45ms/query before pooling." vertex="1">
+          <mxGeometry height="89" width="200" x="800" y="966" as="geometry" />
+        </mxCell>
+        <mxCell id="c_backend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#9673a6;dashed=1;verticalAlign=top;align=left;fontSize=14;fontStyle=1;spacingLeft=10;spacingTop=8;" value="ONLINE SERVING API  ·  backend/src  (FastAPI, deployed on Railway)" vertex="1">
+          <mxGeometry height="1455" width="1928" x="852" y="327" as="geometry" />
+        </mxCell>
+        <mxCell id="n_main_py" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;" value="main.py&#xa;FastAPI app · CORS (allow_origins=*, allow_credentials=False — Bearer header, not cookies) · registers brief + briefs + intelligence + profile routers. No global auth: each route opts in via Depends()." vertex="1">
+          <mxGeometry height="48" width="340" x="1718" y="473" as="geometry" />
+        </mxCell>
+        <mxCell id="n_auth_py" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="auth.py&#xa;authenticated_user() — hard gate, 401s without a session (brief.py, briefs.py, profile.py). optional_user() — returns None instead of 401, for anonymous demo reads (intelligence.py)." vertex="1">
+          <mxGeometry height="60" width="340" x="1723.17" y="595" as="geometry" />
+        </mxCell>
+        <mxCell id="n_taxonomy_niche" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="taxonomy.py&#xa;canonicalize_niche() — resolves free-typed niche to its canonical stored name; None = not in the library (never auto-creates a niche)" vertex="1">
+          <mxGeometry height="55" width="340" x="1723.17" y="717" as="geometry" />
+        </mxCell>
+        <mxCell id="n_get_patterns_by_niche_platform" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="retrieval.py&#xa;get_patterns_by_niche_platform()&#xa;plain SELECT * WHERE niche, platform (using the canonical niche)" vertex="1">
+          <mxGeometry height="55" width="340" x="2347" y="842" as="geometry" />
+        </mxCell>
+        <mxCell id="n_aggregate_intelligence" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="intelligence_aggregator.py&#xa;aggregate_intelligence()&#xa;code stats (format/CTA/content_type distributions, benchmarks) + one GPT-4o call for whats_winning/whats_saturated over ALL pooled success_factors (no cap - grows with library size)" vertex="1">
+          <mxGeometry height="75" width="340" x="2335" y="259" as="geometry" />
+        </mxCell>
+        <mxCell id="n_profile_router" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="routers/profile.py&#xa;GET/PUT /api/profile — brand_profiles (organization_name, description); GET 404s if onboarding was skipped (expected, not an error)" vertex="1">
+          <mxGeometry height="55" width="340" x="2195" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="n_saved_briefs_svc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="services/saved_briefs.py&#xa;save_generated_brief() (best-effort, called after every successful generate — a save failure doesn&#39;t fail the request) · list_saved_briefs() · get_saved_brief() · delete_saved_brief() — all scoped by user_id" vertex="1">
+          <mxGeometry height="75" width="340" x="1584" y="1388" as="geometry" />
+        </mxCell>
+        <mxCell id="n_brand_profile_svc" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="services/brand_profile.py&#xa;get_brand_profile()/save_brand_profile() — folded into brief.py&#39;s retrieval query + LLM prompt when present, not re-asked per brief" vertex="1">
+          <mxGeometry height="60" width="340" x="2200" y="965" as="geometry" />
+        </mxCell>
+        <mxCell id="n_summarize_evidence" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;" value="intelligence_aggregator.py&#xa;summarize_evidence()&#xa;code-only, NO LLM call: pattern_count, dominant_format, avg_hook_delivery, top_cta + up to REFERENCE_VIDEOS_LIMIT real reference videos (video_url/title/views) — from the SAME patterns already retrieved for this one brief" vertex="1">
+          <mxGeometry height="80" width="340" x="1222" y="407" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="n_urls_json" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_build_library">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="n_build_library" style="rounded=0;html=1;fontSize=10;" target="n_fetch_metadata">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="n_build_library" style="rounded=0;html=1;fontSize=10;" target="n_fetch_transcript">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="n_fetch_metadata" style="rounded=0;html=1;fontSize=10;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="n_yt_api" value="video id">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="n_fetch_transcript" style="rounded=0;html=1;fontSize=10;" target="n_yt_transcript" value="video id">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="n_fetch_metadata" style="rounded=0;html=1;fontSize=10;" target="n_compute_signals" value="duration_seconds">
+          <mxGeometry relative="1" x="-0.1469" y="6" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="n_fetch_transcript" style="rounded=0;html=1;fontSize=10;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n_compute_signals" value="transcript">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="n_compute_signals" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_generate_topic_summary" value="title + transcript_text">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="n_generate_topic_summary" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_openai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="n_generate_topic_summary" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_classify_niche" value="topic_summary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="n_classify_niche" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_openai" value="embed + LLM tie-break">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="n_classify_niche" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;" target="n_patterns_table" value="reads topic_embedding&#xa;(per-niche centroids, cached)">
+          <mxGeometry relative="1" x="0.1878" as="geometry">
+            <mxPoint x="-1" as="offset" />
+            <Array as="points">
+              <mxPoint x="-309.93" y="575" />
+              <mxPoint x="900.07" y="575" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="n_classify_niche" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_skip_video" value="no confident match">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="n_classify_niche" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_download_extract_frames" value="niche confident">
+          <mxGeometry relative="1" x="-0.0021" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="n_download_extract_frames" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="n_yt_api">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-50" y="345" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="n_download_extract_frames" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_extract_pattern" value="frame_paths">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="n_extract_pattern" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_openai" value="gpt-4o vision">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="n_extract_pattern" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;" target="n_content_types_table" value="get_known_content_types()&#xa;(prompt nudge)">
+          <mxGeometry relative="1" x="-0.3336" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="n_extract_pattern" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_pipeline_taxonomy" value="raw content_type">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19b" edge="1" parent="1" source="n_pipeline_taxonomy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;" target="n_openai" value="embed label (cache miss only)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19c" edge="1" parent="1" source="n_pipeline_taxonomy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;" target="n_content_types_table" value="exact match, else embedding &lt;=&gt;;&#xa;insert if genuinely new">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19d" edge="1" parent="1" source="n_pipeline_taxonomy" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_store_pattern" value="canonical content_type&#xa;+ pattern dict">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="n_store_pattern" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_openai" value="embed document&#xa;+ topic_summary">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="n_store_pattern" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_patterns_table" value="upsert (video_url unique)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="n_store_pattern" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_niches_table" value="insert w/ label embedding&#xa;if genuinely new">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="n_store_pattern" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_content_types_table" value="insert w/ label embedding&#xa;if genuinely new">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="n_main_py" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_brief_router" value="registers">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1559.98" y="584.0874719290923" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="n_main_py" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_intelligence_router" value="registers">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2156.996949152542" y="497" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_reg1" edge="1" parent="1" source="n_main_py" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_briefs_router" value="registers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_reg2" edge="1" parent="1" source="n_main_py" style="rounded=0;html=1;fontSize=10;dashed=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="n_profile_router" value="registers">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2200" y="545.7478241721369" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_a1" edge="1" parent="1" source="n_brief_router" style="rounded=0;html=1;fontSize=10;" target="n_auth_py" value="Depends(authenticated_user)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1559.98" y="605.0338341381982" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_a2" edge="1" parent="1" source="n_intelligence_router" style="rounded=0;html=1;fontSize=10;" target="n_auth_py" value="Depends(optional_user)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2101.19" y="508.9354838709678" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_a3" edge="1" parent="1" source="n_auth_py" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_clerk" value="verifies JWT&#xa;(CLERK_SECRET_KEY)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a6" edge="1" parent="1" source="n_brief_router" style="rounded=0;html=1;fontSize=10;" target="n_taxonomy_niche" value="canonicalize_niche(request.niche)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1464.0025" y="842" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_a7" edge="1" parent="1" source="n_intelligence_router" style="rounded=0;html=1;fontSize=10;" target="n_taxonomy_niche" value="canonicalize_niche(niche)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2101.19" y="552" as="sourcePoint" />
+            <mxPoint x="1914.19" y="579.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_a8" edge="1" parent="1" source="n_taxonomy_niche" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_niches_table" value="exact match, else&#xa;embedding &lt;=&gt; on niches">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a9" edge="1" parent="1" source="n_taxonomy_niche" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;dashed=1;" target="n_openai" value="embed label&#xa;(cache miss only)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" edge="1" parent="1" source="n_query_similar_patterns" style="rounded=0;html=1;fontSize=10;" target="n_patterns_table" value="tiered SQL + cosine &lt;=&gt;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" edge="1" parent="1" source="n_query_similar_patterns" style="rounded=0;html=1;fontSize=10;" target="n_generate_brief" value="patterns (n_results=10)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" edge="1" parent="1" source="n_generate_brief" style="rounded=0;html=1;fontSize=10;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="n_openai" value="gpt-4o structured output">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" edge="1" parent="1" source="n_intelligence_router" style="rounded=0;html=1;fontSize=10;" target="n_get_patterns_by_niche_platform" value="get_patterns_by_niche_platform&#xa;(canonical_niche, platform)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e35" edge="1" parent="1" source="n_get_patterns_by_niche_platform" style="rounded=0;html=1;fontSize=10;" target="n_patterns_table" value="SELECT * WHERE niche, platform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e36" edge="1" parent="1" source="n_intelligence_router" style="rounded=0;html=1;fontSize=10;" target="n_aggregate_intelligence" value="all matching patterns">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e37" edge="1" parent="1" source="n_aggregate_intelligence" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" target="n_openai" value="gpt-4o (trend synthesis,&#xa;uncapped success_factors)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_direct1" edge="1" parent="1" source="n_brief_router" style="rounded=0;html=1;fontSize=10;" target="n_query_similar_patterns" value="builds query text;&#xa;resolves content_type">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1659.372781065088" y="1194" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_direct2" edge="1" parent="1" source="n_query_similar_patterns" style="rounded=0;html=1;fontSize=10;" target="n_openai" value="generate_embedding(query)&#xa;text-embedding-3-small">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ev1" edge="1" parent="1" source="n_brief_router" style="rounded=0;html=1;fontSize=10;" target="n_summarize_evidence" value="same retrieved patterns&#xa;+ tier">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_bp1" edge="1" parent="1" source="n_generate_brief" style="rounded=0;html=1;fontSize=10;" target="n_brand_profile_svc" value="get_brand_profile(user_id)&#xa;folds into query + prompt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sb1" edge="1" parent="1" source="n_brief_router" style="rounded=0;html=1;fontSize=10;" target="n_saved_briefs_svc" value="save_generated_brief()&#xa;(best-effort, after successful generate)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sb2" edge="1" parent="1" source="n_briefs_router" style="rounded=0;html=1;fontSize=10;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" target="n_saved_briefs_svc" value="list / get / delete">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_pr1" edge="1" parent="1" source="n_profile_router" style="rounded=0;html=1;fontSize=10;" target="n_brand_profile_svc" value="get / save">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pool1" edge="1" parent="1" source="n_query_similar_patterns" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_conn_pool" value="get_connection()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pool2" edge="1" parent="1" source="n_query_similar_patterns" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_conn_pool" value="get_connection()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pool3" edge="1" parent="1" source="n_saved_briefs_svc" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_conn_pool" value="get_connection()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pool4" edge="1" parent="1" source="n_brand_profile_svc" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_conn_pool" value="get_connection()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_pool5" edge="1" parent="1" source="n_conn_pool" style="rounded=0;html=1;fontSize=10;dashed=1;" target="n_accounts_tables">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n_query_similar_patterns" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="retrieval.py&#xa;query_similar_patterns()&#xa;progressive fallback tiers (niche+platform+content_type → … → fully open); cosine &lt;=&gt; on embedding. Now returns (patterns, tier) — tier is a TIER_LABELS key disclosing how targeted the match actually was." vertex="1">
+          <mxGeometry height="70" width="340" x="1202" y="1082" as="geometry" />
+        </mxCell>
+        <mxCell id="n_brief_router" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="routers/brief.py&#xa;POST /api/brief/generate (authenticated_user)" vertex="1">
+          <mxGeometry height="45" width="340" x="1222" y="573" as="geometry" />
+        </mxCell>
+        <mxCell id="n_briefs_router" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="routers/briefs.py&#xa;GET /api/briefs (history, most recent first) · GET /api/briefs/{id} · DELETE /api/briefs/{id} — all authenticated_user, scoped to user_id; 404 either way if missing or not owned" vertex="1">
+          <mxGeometry height="60" width="340" x="2129" y="1395.5" as="geometry" />
+        </mxCell>
+        <mxCell id="n_generate_brief" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="brief_generator.py&#xa;generate_brief()&#xa;GPT-4o structured output (responses.parse) → BriefResponse: hook_options: list[HookOption] (text/style/why_it_works/delivery_note), script_outline: list[ScriptBeat] (+shot_style/camera/lighting/on_screen_caption/audio). RuntimeError caught by brief.py → HTTP 502, not a bare 500." vertex="1">
+          <mxGeometry height="113" width="360" x="1098" y="1442" as="geometry" />
+        </mxCell>
+        <mxCell id="wSeRorulDKgLuyEKRI55-1" edge="1" parent="1" source="n_get_patterns_by_niche_platform" style="rounded=0;html=1;fontSize=10;" target="n_intelligence_router" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="2471" y="770" as="sourcePoint" />
+            <mxPoint x="2471" y="334" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n_intelligence_router" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" value="routers/intelligence.py&#xa;GET /api/intelligence/{niche}/{platform} (optional_user — serves signed-out demo callers too) · 404 if canonicalize_niche(niche) is None · in-memory TTL cache per (niche,platform), 900s default" vertex="1">
+          <mxGeometry height="60" width="340" x="2341" y="677.5" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
