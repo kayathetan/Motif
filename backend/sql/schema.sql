@@ -20,13 +20,20 @@ create extension if not exists vector;
 -- patterns.niche/content_type stay plain text columns, just FK'd to
 -- these now - no read query anywhere needs to change, since nothing
 -- reads through the FK, it only constrains what can be written.
+-- embedding: of the label itself (e.g. "skincare"), not video content -
+-- lets backend/src/services/taxonomy.py resolve a free-typed label
+-- ("skin care") to this canonical name by similarity instead of requiring
+-- an exact string match. Nullable so a row can exist before its embedding
+-- is backfilled (see migrations/0006).
 create table if not exists niches (
     name text primary key,
+    embedding vector(1536),
     created_at timestamptz not null default now()
 );
 
 create table if not exists content_types (
     name text primary key,
+    embedding vector(1536),
     created_at timestamptz not null default now()
 );
 

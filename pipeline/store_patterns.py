@@ -162,17 +162,30 @@ def store_pattern(pattern: dict) -> None:
             # niche/content_type are FK-constrained to the niches/
             # content_types lookup tables (backend/sql/schema.sql) - insert
             # the value there first if it's new, or the pattern insert
-            # below fails with a foreign key violation. This is what
-            # actually creates a "new" niche or content_type; there's no
-            # separate creation step anywhere else.
-            cur.execute(
-                "insert into niches (name) values (%s) on conflict (name) do nothing",
-                (pattern["niche"],),
-            )
-            cur.execute(
-                "insert into content_types (name) values (%s) on conflict (name) do nothing",
-                (pattern["content_type"],),
-            )
+            # below fails with a foreign key violation.
+            #
+            # Also store an embedding of the label itself here (not video
+            # content - see taxonomy.py's module docstring), so
+            # backend/src/services/taxonomy.py can resolve a free-typed
+            # niche/content_type against it by similarity right away
+            # instead of waiting on a backfill. Checked with a plain
+            # select first rather than folding generate_embedding() into
+            # every insert: this runs on every single stored pattern, and
+            # niche/content_type are almost always already-known values
+            # (e.g. "fitness" repeated across hundreds of videos) - paying
+            # for an embedding call on every one of those would be pure
+            # waste for a row that's already there.
+            for table, value in (
+                ("niches", pattern["niche"]),
+                ("content_types", pattern["content_type"]),
+            ):
+                cur.execute(f"select 1 from {table} where name = %s", (value,))
+                if cur.fetchone() is None:
+                    cur.execute(
+                        f"insert into {table} (name, embedding) values (%s, %s::vector) "
+                        "on conflict (name) do nothing",
+                        (value, generate_embedding(value)),
+                    )
             cur.execute(
                 f"""
                 insert into patterns ({', '.join(columns)})
