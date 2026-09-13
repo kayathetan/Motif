@@ -29,6 +29,7 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 from pipeline.classify_niche import get_known_content_types
+from pipeline.taxonomy import canonicalize_content_type
 
 # load_dotenv() with no args searches upward from the current working
 # directory - useless here, since backend/.env is a sibling of pipeline/,
@@ -216,6 +217,13 @@ def extract_pattern(
         raise RuntimeError("Model returned no parseable pattern.")
 
     extracted = response.output_parsed.model_dump()
+
+    # Second line of defense on top of the known_content_types prompt
+    # nudge above: collapse a near-duplicate the model still produced
+    # (e.g. "product_demonstration") into the existing canonical label by
+    # embedding similarity, rather than trusting the nudge alone. See
+    # taxonomy.py's module docstring.
+    extracted["content_type"] = canonicalize_content_type(extracted["content_type"])
 
     # hook_delivery_seconds / cta_placement_percent are code-computed, not
     # model-derived - pass them through as-is (see module docstring).

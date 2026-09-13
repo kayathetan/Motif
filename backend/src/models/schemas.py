@@ -49,6 +49,31 @@ class BriefResponse(BaseModel):
     hashtags: list[str]
 
 
+class BriefGenerationResponse(BriefResponse):
+    """
+    The actual /api/brief/generate response shape: BriefResponse plus
+    niche_recognized, added by the router after generation - not part of
+    BriefResponse itself, since BriefResponse doubles as the OpenAI
+    structured-output schema in brief_generator.py (text_format=
+    BriefResponse). Adding niche_recognized there would make the LLM
+    itself responsible for producing a value for a field it has no way to
+    judge, and OpenAI's strict structured-output mode requires every
+    schema property to be filled in regardless of a Python-side default
+    (see brief_generator.py's header for the strict-mode gotchas already
+    hit here) - wasted model attention on a field the router immediately
+    overwrites anyway.
+
+    niche_recognized is False when the request's niche didn't confidently
+    resolve to anything in the pattern library (see
+    src.services.taxonomy.canonicalize_niche). The brief still generates -
+    retrieval broadens past niche automatically either way - but the
+    frontend should say so rather than implying it's niche-grounded when
+    it isn't.
+    """
+
+    niche_recognized: bool = True
+
+
 class Pattern(BaseModel):
     niche: str
     platform: Literal["tiktok", "reels", "youtube_shorts"]

@@ -72,6 +72,18 @@ export default function Brief() {
 
         {state.status === 'ready' && (
           <>
+            {!state.data.niche_recognized && (
+              <div className="sec" style={{ marginTop: 40 }}>
+                <div className="card" style={{ padding: '18px 24px', background: 'var(--warn-bg)' }}>
+                  <p style={{ fontSize: 13.5, color: 'var(--warn)' }}>
+                    <b>&quot;{brief.niche}&quot;</b> isn&apos;t in the pattern library yet - this brief draws on general
+                    evidence across niches rather than {brief.niche}-specific data. It&apos;ll get more specific once
+                    real {brief.niche} content has been measured.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="sec" style={{ marginTop: 40 }}>
               <h2>Script outline</h2>
 
