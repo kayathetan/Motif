@@ -25,6 +25,7 @@ from src.services.brief_generator import (
     generate_brief as generate_brief_from_patterns,
 )
 from src.services.brief_generator import infer_content_type
+from src.services.intelligence_aggregator import summarize_evidence
 from src.services.rate_limit import enforce_brief_rate_limit
 from src.services.retrieval import query_similar_patterns
 from src.services.saved_briefs import save_generated_brief
@@ -98,7 +99,7 @@ async def generate_brief(
         content_type = canonicalize_content_type(content_type)
         query += f" Content type: {content_type}."
 
-    patterns = query_similar_patterns(
+    patterns, evidence_tier = query_similar_patterns(
         query,
         n_results=6,
         niche=canonical_niche,
@@ -118,7 +119,13 @@ async def generate_brief(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Brief generation failed: {exc}",
         ) from exc
-    response = BriefGenerationResponse(**brief.model_dump(), niche_recognized=niche_recognized)
+    # Pure code, no LLM call - see summarize_evidence's docstring for why
+    # this has to be computed independently of brief_generator's output
+    # rather than asked of the same model that wrote the creative copy.
+    evidence = summarize_evidence(patterns, evidence_tier)
+    response = BriefGenerationResponse(
+        **brief.model_dump(), niche_recognized=niche_recognized, evidence=evidence
+    )
 
     # Best-effort: a save failure shouldn't turn a successful generation
     # into a 500 for the user. They just won't see this one in their

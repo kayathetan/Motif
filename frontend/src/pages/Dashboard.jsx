@@ -4,8 +4,9 @@ import { useAuth } from '@clerk/react'
 import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
 import ChipSet from '../components/ChipSet.jsx'
+import { BinIcon } from '../components/icons.jsx'
 import { useBrief } from '../store.jsx'
-import { fetchBrandProfile, fetchBriefs, platformLabel } from '../api.js'
+import { fetchBrandProfile, fetchBriefs, deleteSavedBrief, platformLabel } from '../api.js'
 import { formatLabel } from '../format.js'
 
 const PLATFORMS = ['Instagram Reels', 'TikTok', 'YouTube Shorts']
@@ -39,6 +40,11 @@ export default function Dashboard() {
   // error UI for a secondary, non-blocking part of the page).
   const [briefsStatus, setBriefsStatus] = useState('loading')
   const [briefs, setBriefs] = useState([])
+  // Which row is showing "Confirm / Cancel" in place of the × - a second
+  // click is required before anything is actually deleted. Separate from
+  // deletingId so the confirm state can't be re-triggered mid-request.
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [deletingId, setDeletingId] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -71,6 +77,20 @@ export default function Dashboard() {
     if (!lookupNiche.trim()) return
     update({ niche: lookupNiche.trim(), platform: lookupPlatform })
     navigate('/market')
+  }
+
+  const handleDelete = async (id) => {
+    setDeletingId(id)
+    try {
+      await deleteSavedBrief(id, getToken)
+      setBriefs((prev) => prev.filter((b) => b.id !== id))
+    } catch {
+      // Left in the list on failure - a toast isn't worth building for a
+      // secondary action; the × is still there to try again.
+    } finally {
+      setDeletingId(null)
+      setConfirmDeleteId(null)
+    }
   }
 
   return (
@@ -126,15 +146,34 @@ export default function Dashboard() {
             <h2>Previous briefs</h2>
             <div className="brief-list">
               {briefs.map((b) => (
-                <Link key={b.id} to={`/briefs/${b.id}`} className="brief-row">
-                  <div>
+                <div key={b.id} className="brief-row">
+                  <Link to={`/briefs/${b.id}`} className="brief-row-main">
                     <p className="bt">{b.topic || `${formatLabel(b.niche)} · ${formatLabel(b.goal)}`}</p>
                     <p className="bs">{formatLabel(b.niche)} · {platformLabel(b.platform)} · {b.audience}</p>
+                  </Link>
+                  <div className="brief-row-side">
+                    <p className="bd">
+                      {new Date(b.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    </p>
+                    {confirmDeleteId === b.id ? (
+                      <span className="row-confirm">
+                        <button type="button" className="danger" onClick={() => handleDelete(b.id)} disabled={deletingId === b.id}>
+                          {deletingId === b.id ? 'Deleting…' : 'Confirm'}
+                        </button>
+                        <button type="button" className="quiet" onClick={() => setConfirmDeleteId(null)}>Cancel</button>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="row-delete"
+                        aria-label="Delete this brief"
+                        onClick={() => setConfirmDeleteId(b.id)}
+                      >
+                        <BinIcon />
+                      </button>
+                    )}
                   </div>
-                  <p className="bd">
-                    {new Date(b.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                  </p>
-                </Link>
+                </div>
               ))}
             </div>
           </div>

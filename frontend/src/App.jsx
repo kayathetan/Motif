@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { BriefProvider } from './store.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
 
 import Landing from './pages/Landing.jsx'
 import Signup from './pages/Signup.jsx'
@@ -16,6 +17,7 @@ import SavedBrief from './pages/SavedBrief.jsx'
 export default function App() {
   return (
     <BriefProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/signup" element={<Signup />} />

@@ -242,3 +242,20 @@ export async function fetchSavedBrief(id, getToken) {
   }
   return res.json()
 }
+
+/**
+ * DELETE /api/briefs/{id} - permanently remove one saved brief. Used by
+ * both the dashboard's history list and SavedBrief.jsx's own page.
+ */
+export async function deleteSavedBrief(id, getToken) {
+  if (isDemo()) throw new DemoModeUnavailable()
+
+  const res = await fetch(`/api/briefs/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: await authHeaders(getToken),
+  })
+  if (!res.ok && res.status !== 404) {
+    const body = await res.text()
+    throw new Error(`Deleting that brief failed (${res.status}): ${body || res.statusText}`)
+  }
+}

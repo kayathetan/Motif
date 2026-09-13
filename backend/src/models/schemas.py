@@ -177,6 +177,42 @@ class BriefResponse(BaseModel):
         ]
 
 
+class ReferenceVideo(BaseModel):
+    """
+    One real video from the pattern library that this brief's evidence
+    actually drew on - code-appended from the retrieved pattern rows in
+    routers/brief.py, not asked of the LLM. A clickable, checkable URL is
+    the one thing a plain LLM wrapper (no pattern library to retrieve
+    from) structurally cannot produce.
+    """
+
+    video_url: str
+    title: str
+    views: int
+    content_type: str
+
+
+class EvidenceSummary(BaseModel):
+    """
+    A pure-code summary of the patterns actually retrieved for this
+    brief (see services.intelligence_aggregator.summarize_evidence) plus
+    a plain-language disclosure of how targeted the match was (see
+    retrieval.TIER_LABELS). No LLM call and no LLM-authored numbers here -
+    the whole point is that this is checkable against the reference
+    videos below it, not another confident-sounding claim from the same
+    model that wrote the creative copy.
+    """
+
+    pattern_count: int
+    tier_label: str
+    dominant_format: str | None = None
+    dominant_format_percent: float | None = None
+    avg_hook_delivery_seconds: float | None = None
+    top_cta: str | None = None
+    top_cta_percent: float | None = None
+    reference_videos: list[ReferenceVideo] = Field(default_factory=list)
+
+
 class BriefGenerationResponse(BriefResponse):
     """
     The actual /api/brief/generate response shape: BriefResponse plus
@@ -200,6 +236,11 @@ class BriefGenerationResponse(BriefResponse):
     """
 
     niche_recognized: bool = True
+    # None (not required) for the same backward-compatibility reason as
+    # ScriptBeat/HookOption's newer fields: a brief saved before this
+    # field existed has no key for it in its stored JSONB, and this
+    # shouldn't 500 GET /api/briefs/{id} for those.
+    evidence: EvidenceSummary | None = None
 
 
 class SavedBriefSummary(BaseModel):

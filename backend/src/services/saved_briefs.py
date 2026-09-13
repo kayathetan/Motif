@@ -96,3 +96,27 @@ def get_saved_brief(user_id: str, brief_id: int) -> SavedBrief | None:
             )
             row = cur.fetchone()
     return SavedBrief(**row) if row else None
+
+
+def delete_saved_brief(user_id: str, brief_id: int) -> bool:
+    """
+    Delete one saved brief.
+
+    Filters on user_id as well as id, same reasoning as get_saved_brief -
+    a signed-in user can only ever delete their own history, not anyone
+    else's by guessing/incrementing an id.
+
+    Returns:
+        True if a row was actually deleted, False if no such brief
+        existed for this user (already gone, or never theirs) - the
+        caller (routers/briefs.py) turns False into a 404.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "delete from saved_briefs where user_id = %s and id = %s",
+                (user_id, brief_id),
+            )
+            deleted = cur.rowcount > 0
+        conn.commit()
+    return deleted

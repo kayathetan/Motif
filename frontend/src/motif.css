@@ -199,13 +199,36 @@ a{color:inherit;text-decoration:none}
 .tag{font-size:12.5px;background:rgba(139,92,246,.09);
   color:var(--purple-deep);border-radius:999px;padding:7px 13px}
 
-.refs{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.ref{padding:18px;display:flex;gap:16px;align-items:center}
-.refthumb{width:74px;height:98px;border-radius:8px;flex:none}
-.ref .rt{font-size:14.5px;font-weight:560;letter-spacing:-.02em;line-height:1.3}
+/* One scrollable row, not a grid - up to 6 reference videos, ~3 visible
+   at typical widths, the rest reachable by scrolling (or JS-driven
+   auto-scroll, see BriefContent's ReferenceVideos). scroll-behavior:auto
+   overrides html's smooth default, which would otherwise fight the many
+   small scrollLeft steps the auto-scroll makes with easing meant for one
+   big jump. */
+.refs{display:flex;gap:18px;overflow-x:auto;scroll-behavior:auto;padding-bottom:2px}
+.ref{padding:18px;display:flex;gap:16px;align-items:center;text-decoration:none;color:inherit;
+  transition:border-color .15s ease;flex:0 0 300px}
+.ref:hover{border-color:var(--purple-soft)}
+.refthumb{width:74px;height:98px;border-radius:8px;flex:none;object-fit:cover;background:var(--ground)}
+.ref .rt{font-size:14.5px;font-weight:560;letter-spacing:-.02em;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .ref .rm{font-size:11px;color:var(--label);margin-top:6px}
 .rmatch{font-size:11px;font-weight:500;color:var(--good);
   background:var(--good-bg);border-radius:999px;padding:4px 9px;display:inline-block;margin-top:8px}
+
+/* ---------- evidence: proof a brief is grounded, not asserted ---------- */
+.evidence{padding:22px 26px}
+.ev-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px}
+.ev-tier{font-size:12px;color:var(--ink-2)}
+.ev-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px;margin-top:16px}
+.ev-v{margin-top:6px;font-size:20px;font-weight:590;letter-spacing:-.02em}
+.ev-v.sm{font-size:14.5px;font-weight:510}
+.ev-v span{color:var(--ink-2);font-weight:500;font-size:.85em;margin-left:4px}
+
+@media (max-width:640px){
+  .ev-stats{grid-template-columns:1fr}
+  .ref{flex-basis:78vw}
+}
 
 /* ---------- analyser ---------- */
 .gauge{display:flex;justify-content:center;margin-top:30px}
@@ -345,13 +368,28 @@ a{color:inherit;text-decoration:none}
    separately-elevated shadow cards - the more conventional shape for a
    record list in a working dashboard. */
 .brief-list{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:16px;background:var(--card)}
+/* Not a single <Link> around the whole row anymore - a delete button
+   needs to sit in the row without being a link nested inside a link.
+   .brief-row-main just carries the click-through-to-the-brief behaviour
+   now; the hover tint stays on the whole row, same as before. */
 .brief-row{display:flex;align-items:center;justify-content:space-between;gap:18px;
   padding:15px 20px;border-bottom:1px solid var(--hair);transition:background-color .1s ease}
 .brief-row:last-child{border-bottom:none}
 .brief-row:hover{background:var(--ground)}
-.brief-row .bt{font-size:13.5px;font-weight:510;color:var(--ink)}
+.brief-row-main{display:block;flex:1;min-width:0;color:inherit;text-decoration:none}
+.brief-row .bt{font-size:13.5px;font-weight:510;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .brief-row .bs{font-size:12px;color:var(--ink-2);margin-top:3px}
+.brief-row-side{display:flex;align-items:center;gap:14px;flex:none}
 .brief-row .bd{font-size:11.5px;color:var(--label);white-space:nowrap}
+.row-delete{display:inline-flex;align-items:center;justify-content:center;color:var(--label);padding:6px;
+  border:none;background:none;border-radius:6px;cursor:pointer;transition:color .1s ease,background-color .1s ease}
+.row-delete:hover{color:var(--bad);background:var(--bad-bg)}
+.row-confirm{display:flex;align-items:center;gap:10px;font-size:12.5px;white-space:nowrap}
+.row-confirm button{font-weight:560;font-family:inherit;font-size:inherit;border:none;background:none;
+  padding:0;cursor:pointer}
+.row-confirm .danger{color:var(--bad)}
+.row-confirm .quiet{color:var(--ink-2)}
 
 /* ---------- signed-in user chip ---------- */
 .user{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:510;letter-spacing:-.01em;
@@ -387,7 +425,7 @@ a{color:inherit;text-decoration:none}
 @media (max-width:1200px){
   .band{grid-template-columns:100px 1fr;gap:20px}
   .band .spec{grid-column:1 / -1;border-left:none;border-top:1px solid var(--line);padding:14px 0 0}
-  .signals,.trio,.hooks,.refs{grid-template-columns:1fr 1fr}
+  .signals,.trio,.hooks{grid-template-columns:1fr 1fr}
   .gap{grid-template-columns:1fr 1fr}
   .duo{grid-template-columns:1fr}
 }

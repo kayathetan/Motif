@@ -59,6 +59,21 @@ def get_connection():
 
 MIN_PATTERNS_BEFORE_BROADENING = 3
 
+# Human-readable disclosure of how targeted a brief's evidence actually
+# was, keyed by the tier codes query_similar_patterns returns alongside
+# its rows. Surfaced on the brief itself (routers/brief.py) so "grounded
+# in real data" is checkable, not just asserted - including the honest
+# version of that sentence when the match had to broaden past an exact
+# niche/platform/content_type hit.
+TIER_LABELS: dict[str, str] = {
+    "niche_platform_content_type": "Exact match on niche, platform and content type",
+    "niche_content_type": "Matched on niche and content type, any platform",
+    "content_type_only": "Matched on content type across niches - niche-specific evidence was too sparse",
+    "niche_platform": "Exact match on niche and platform",
+    "niche_only": "Matched on niche only, any platform",
+    "open": "Broad match - limited category-specific evidence for this request",
+}
+
 
 def _run_similarity_query(
     cur: psycopg.Cursor,
@@ -124,39 +139,46 @@ def query_similar_patterns(
             above for how this changes the fallback order.
 
     Returns:
-        A list of pattern rows (dicts), each including a `distance` field
-        (cosine distance, lower = more similar) so downstream LLM calls can
-        weight evidence by retrieval relevance.
+        A (rows, tier) tuple. rows is a list of pattern rows (dicts), each
+        including a `distance` field (cosine distance, lower = more
+        similar) so downstream LLM calls can weight evidence by retrieval
+        relevance. tier is a key into TIER_LABELS above, identifying which
+        tier the returned rows actually came from - every row in the
+        result is from that same one tier (broadening picks a single
+        tier's full result set, not a blend across tiers).
     """
     embedding = generate_embedding(query)
 
-    tiers: list[tuple[str | None, tuple]] = []
+    tiers: list[tuple[str | None, tuple, str]] = []
     if content_type is not None:
         if niche is not None and platform is not None:
             tiers.append(
                 (
                     "niche = %s and platform = %s and content_type = %s",
                     (niche, platform, content_type),
+                    "niche_platform_content_type",
                 )
             )
         if niche is not None:
-            tiers.append(("niche = %s and content_type = %s", (niche, content_type)))
-        tiers.append(("content_type = %s", (content_type,)))
+            tiers.append(("niche = %s and content_type = %s", (niche, content_type), "niche_content_type"))
+        tiers.append(("content_type = %s", (content_type,), "content_type_only"))
     elif niche is not None and platform is not None:
-        tiers.append(("niche = %s and platform = %s", (niche, platform)))
-        tiers.append(("niche = %s", (niche,)))
-    tiers.append((None, ()))  # fully open, last resort
+        tiers.append(("niche = %s and platform = %s", (niche, platform), "niche_platform"))
+        tiers.append(("niche = %s", (niche,), "niche_only"))
+    tiers.append((None, (), "open"))  # fully open, last resort
 
     with get_connection() as conn:
         with conn.cursor() as cur:
             rows: list[dict] = []
-            for where_clause, where_params in tiers:
+            tier_used = "open"
+            for where_clause, where_params, tier_label in tiers:
                 rows = _run_similarity_query(
                     cur, embedding, n_results, where_clause, where_params
                 )
+                tier_used = tier_label
                 if len(rows) >= MIN_PATTERNS_BEFORE_BROADENING or where_clause is None:
                     break
-            return rows
+            return rows, tier_used
 
 
 def get_patterns_by_niche_platform(niche: str, platform: str) -> list[dict]:

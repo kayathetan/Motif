@@ -13,7 +13,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
-from src.models.schemas import NicheIntelligenceResponse
+from src.models.schemas import EvidenceSummary, NicheIntelligenceResponse, ReferenceVideo
+from src.services.retrieval import TIER_LABELS
 
 # See the matching note in embeddings.py - load_dotenv() with no args
 # doesn't reliably find backend/.env depending on the process's cwd.
@@ -176,4 +177,71 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
         structural_benchmark=structural_benchmark,
         whats_winning=trends.whats_winning,
         whats_saturated=trends.whats_saturated,
+    )
+
+
+REFERENCE_VIDEOS_LIMIT = 10
+
+
+def summarize_evidence(patterns: list[dict], tier: str) -> EvidenceSummary:
+    """
+    Pure-code summary of the exact patterns retrieved for ONE brief - no
+    LLM call, unlike aggregate_intelligence() above, and a smaller,
+    request-specific set (whatever query_similar_patterns returned, not
+    every stored pattern for the niche/platform).
+
+    Meant to sit next to the brief's own recommendations as proof they're
+    anchored to real, checkable numbers rather than asserted by the same
+    model that wrote the creative copy around them - see routers/brief.py.
+
+    Args:
+        patterns: The rows query_similar_patterns returned for this
+            request (already ordered by retrieval relevance).
+        tier: The tier code query_similar_patterns returned alongside
+            those rows - which TIER_LABELS key describes how targeted
+            the match was.
+
+    Returns:
+        An EvidenceSummary. Numeric fields are None (not the caller's
+        problem to special-case) when patterns is empty - open evidence
+        with nothing retrieved at all, meaning the brief drew on the
+        model's general reasoning with no niche/platform anchor.
+    """
+    total = len(patterns)
+    tier_label = TIER_LABELS.get(tier, tier)
+
+    reference_videos = [
+        ReferenceVideo(
+            video_url=p["video_url"],
+            title=p["title"],
+            views=p["views"],
+            content_type=p["content_type"],
+        )
+        for p in patterns[:REFERENCE_VIDEOS_LIMIT]
+    ]
+
+    if total == 0:
+        return EvidenceSummary(
+            pattern_count=0, tier_label=tier_label, reference_videos=reference_videos
+        )
+
+    format_counts = Counter(p["visual_format"] for p in patterns)
+    dominant_format, dominant_format_count = format_counts.most_common(1)[0]
+
+    cta_counts = Counter(p["cta_type"] for p in patterns)
+    top_cta, top_cta_count = cta_counts.most_common(1)[0]
+
+    return EvidenceSummary(
+        pattern_count=total,
+        tier_label=tier_label,
+        dominant_format=dominant_format,
+        dominant_format_percent=round(dominant_format_count / total * 100, 1),
+        # float(): these come back from psycopg as Decimal, not float -
+        # see the identical note on structural_benchmark above.
+        avg_hook_delivery_seconds=round(
+            float(sum(p["hook_delivery_seconds"] for p in patterns)) / total, 2
+        ),
+        top_cta=top_cta,
+        top_cta_percent=round(top_cta_count / total * 100, 1),
+        reference_videos=reference_videos,
     )

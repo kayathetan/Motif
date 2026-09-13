@@ -6,7 +6,7 @@ import Nav from '../components/Nav.jsx'
 import Pills from '../components/Pills.jsx'
 import BriefContent from '../components/BriefContent.jsx'
 import { useBrief } from '../store.jsx'
-import { fetchSavedBrief, fetchIntelligence, platformLabel, DemoModeUnavailable } from '../api.js'
+import { fetchSavedBrief, fetchIntelligence, deleteSavedBrief, platformLabel, DemoModeUnavailable } from '../api.js'
 
 /**
  * A past brief, fetched back by id from the dashboard's history list
@@ -24,6 +24,8 @@ export default function SavedBrief() {
   const { update } = useBrief()
   const [state, setState] = useState({ status: 'loading', data: null, error: null })
   const [intelligence, setIntelligence] = useState({ status: 'loading', data: null })
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +79,17 @@ export default function SavedBrief() {
   const viewMarket = () => {
     update({ niche, platform })
     navigate('/market', { state: { fromBrief: true } })
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      await deleteSavedBrief(id, getToken)
+      navigate('/dashboard')
+    } catch {
+      setDeleting(false)
+      setConfirmDelete(false)
+    }
   }
 
   return (
@@ -139,7 +152,19 @@ export default function SavedBrief() {
             />
             <div className="resultbar no-print">
               <Link className="btn-ghost" to="/dashboard">← Back to dashboard</Link>
-              <button className="btn-dark" type="button" onClick={() => window.print()}>Download as PDF ⭳</button>
+              <span style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                {confirmDelete ? (
+                  <span className="row-confirm">
+                    <button type="button" className="danger" onClick={handleDelete} disabled={deleting}>
+                      {deleting ? 'Deleting…' : 'Confirm delete'}
+                    </button>
+                    <button type="button" className="quiet" onClick={() => setConfirmDelete(false)}>Cancel</button>
+                  </span>
+                ) : (
+                  <button className="btn-ghost" type="button" onClick={() => setConfirmDelete(true)}>Delete brief</button>
+                )}
+                <button className="btn-dark" type="button" onClick={() => window.print()}>Download as PDF ⭳</button>
+              </span>
             </div>
             <BriefContent
               data={state.data.brief}
