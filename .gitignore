@@ -13,5 +13,8 @@ venv/
 frontend/node_modules/
 frontend/dist/
 
+# Local dev notes (personal, never shared to the team via the repo)
+DEV_NOTES.md
+
 # OS
 .DS_Store
