@@ -159,6 +159,20 @@ def store_pattern(pattern: dict) -> None:
 
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         with conn.cursor() as cur:
+            # niche/content_type are FK-constrained to the niches/
+            # content_types lookup tables (backend/sql/schema.sql) - insert
+            # the value there first if it's new, or the pattern insert
+            # below fails with a foreign key violation. This is what
+            # actually creates a "new" niche or content_type; there's no
+            # separate creation step anywhere else.
+            cur.execute(
+                "insert into niches (name) values (%s) on conflict (name) do nothing",
+                (pattern["niche"],),
+            )
+            cur.execute(
+                "insert into content_types (name) values (%s) on conflict (name) do nothing",
+                (pattern["content_type"],),
+            )
             cur.execute(
                 f"""
                 insert into patterns ({', '.join(columns)})

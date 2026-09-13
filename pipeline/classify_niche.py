@@ -105,28 +105,31 @@ Transcript: {transcript_text}
 
 def get_known_content_types() -> list[str]:
     """
-    Distinct content_type values already used across stored patterns, so
-    pattern_extractor.py can be nudged to reuse an existing label instead
-    of inventing near-duplicates ("product_demo" vs "product_demonstration")
-    that would silently fragment NicheIntelligenceResponse.top_content_types
-    and retrieval.py's content_type filter - both key on the exact string,
-    with no fuzzy matching. Same "prefer an existing category, only invent
-    one if truly nothing fits" principle already applied to cta_type, just
-    grown dynamically from what's actually been used instead of a fixed
-    enum, since the full set of content types isn't known upfront (e.g.
-    "trailer_promo" only got added after a real video needed it).
+    Every content_type ever used, so pattern_extractor.py can be nudged to
+    reuse an existing label instead of inventing near-duplicates
+    ("product_demo" vs "product_demonstration") that would silently
+    fragment NicheIntelligenceResponse.top_content_types and retrieval.py's
+    content_type filter - both key on the exact string, with no fuzzy
+    matching. Same "prefer an existing category, only invent one if truly
+    nothing fits" principle already applied to cta_type, just grown
+    dynamically instead of a fixed enum, since the full set isn't known
+    upfront (e.g. "trailer_promo" only got added after a real video
+    needed it).
+
+    Reads the content_types lookup table (backend/sql/schema.sql) rather
+    than `select distinct content_type from patterns` - same result today,
+    but this is the actual canonical list (patterns.content_type is FK'd
+    to it), and stays correct even if a type is ever registered ahead of
+    any pattern using it.
 
     Returns:
-        Sorted distinct content_type values. Empty list before anything's
-        been stored yet - the prompt's illustrative examples carry the
-        library on cold start.
+        Sorted list of known content types. Empty before anything's been
+        stored yet - the prompt's illustrative examples carry the library
+        on cold start.
     """
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                "select distinct content_type from patterns "
-                "where content_type is not null order by content_type"
-            )
+            cur.execute("select name from content_types order by name")
             return [row[0] for row in cur.fetchall()]
 
 

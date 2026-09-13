@@ -12,6 +12,24 @@
 
 create extension if not exists vector;
 
+-- Lightweight normalization for niche/content_type: a real UNIQUE-backed
+-- reference table instead of relying only on prompt discipline (the
+-- dynamic "known types" list pattern_extractor.py/classify_niche.py
+-- already use) to prevent drift ("product_demo" vs
+-- "product_demonstration" silently becoming two different values).
+-- patterns.niche/content_type stay plain text columns, just FK'd to
+-- these now - no read query anywhere needs to change, since nothing
+-- reads through the FK, it only constrains what can be written.
+create table if not exists niches (
+    name text primary key,
+    created_at timestamptz not null default now()
+);
+
+create table if not exists content_types (
+    name text primary key,
+    created_at timestamptz not null default now()
+);
+
 create table if not exists patterns (
     id bigint generated always as identity primary key,
     created_at timestamptz not null default now(),
@@ -26,11 +44,11 @@ create table if not exists patterns (
     published_at timestamptz,
 
     -- structural pattern fields, matching backend/src/models/schemas.py::Pattern
-    niche text not null,
+    niche text not null references niches(name),
     platform text not null check (platform in ('tiktok', 'reels', 'youtube_shorts')),
     -- What KIND of video (product_demo, culture_relatable, etc.) -
     -- orthogonal to niche. See the note in schemas.py::Pattern.
-    content_type text not null,
+    content_type text not null references content_types(name),
     hook_style text not null,
     hook_text text not null,
     hook_delivery_seconds numeric not null,
