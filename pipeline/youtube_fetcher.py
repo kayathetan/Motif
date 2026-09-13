@@ -91,7 +91,9 @@ def fetch_video_metadata(video_url: str) -> dict:
     duration, tags.
 
     Keys match the metadata columns in backend/sql/schema.sql exactly, so the
-    result can be merged straight into a pattern record.
+    result can be merged straight into a pattern record - except
+    "description", which schema.sql has no column for; see its own comment
+    on the returned dict below.
 
     Args:
         video_url: Full YouTube video URL.
@@ -127,6 +129,11 @@ def fetch_video_metadata(video_url: str) -> dict:
     return {
         "video_url": video_url,
         "title": item["snippet"]["title"],
+        # Not a patterns column (see _PATTERN_COLUMNS in store_patterns.py) -
+        # carried through purely as a fallback text source for
+        # classify_niche/pattern_extractor when a video has no transcript
+        # (captions disabled). See build_library.process_video.
+        "description": item["snippet"].get("description", ""),
         "views": int(statistics.get("viewCount", 0)),
         "likes": _optional_int("likeCount"),
         "comment_count": _optional_int("commentCount"),

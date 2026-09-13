@@ -21,6 +21,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from youtube_transcript_api import NoTranscriptFound, TranscriptsDisabled
+
 from pipeline.classify_niche import (
     classify_niche,
     generate_topic_summary,
@@ -85,6 +87,15 @@ def process_video(video_url: str, platform: str = DEFAULT_PLATFORM) -> bool:
     pattern extraction is not (frame download + GPT-4o vision). A video
     with no confident niche match is skipped before paying for that.
 
+    A video with captions disabled (TranscriptsDisabled/NoTranscriptFound)
+    no longer fails outright: topic/content classification falls back to
+    the video's description, while structural timing signals
+    (hook_delivery_seconds, cta_placement_percent, words-per-minute) stay
+    at their honest "unknown" defaults rather than being fabricated from
+    untimed text - see compute_structural_signals's docstring. Any other
+    transcript-fetch error (blocked, unavailable, etc.) still propagates
+    as a real failure.
+
     Args:
         video_url: Full YouTube video URL.
         platform: One of "tiktok", "reels", "youtube_shorts". Not
@@ -103,18 +114,48 @@ def process_video(video_url: str, platform: str = DEFAULT_PLATFORM) -> bool:
     metadata = fetch_video_metadata(video_url)
     log.info("  %s (%s views)", metadata["title"][:64], f"{metadata['views']:,}")
 
-    transcript = fetch_transcript(video_url)
+    try:
+        transcript = fetch_transcript(video_url)
+    except (TranscriptsDisabled, NoTranscriptFound) as exc:
+        # Captions genuinely don't exist for this video - a real, expected
+        # outcome, not a network/blocking failure (those still propagate
+        # normally). Degrade rather than skip: fall back to the video's
+        # description for topic/content classification below, but leave
+        # transcript itself empty so compute_structural_signals() reports
+        # its own honest "unknown" defaults (hook_delivery_seconds=0.0,
+        # cta_placement_percent=None) instead of fabricating timing off
+        # untimed text - see that function's docstring.
+        log.warning(
+            "  no transcript (%s) - falling back to description for "
+            "topic/content classification; timing signals unavailable",
+            type(exc).__name__,
+        )
+        transcript = []
+
     signals = compute_structural_signals(transcript, metadata["duration_seconds"])
     log.info(
-        "  hook %.2fs · cta %.1f%% · wpm %s/%s/%s",
+        "  hook %.2fs · cta %s · wpm %s/%s/%s",
         signals["hook_delivery_seconds"],
-        signals["cta_placement_percent"],
+        f"{signals['cta_placement_percent']:.1f}%"
+        if signals["cta_placement_percent"] is not None
+        else "n/a",
         signals["words_per_minute_first_third"],
         signals["words_per_minute_middle_third"],
         signals["words_per_minute_last_third"],
     )
 
     transcript_text = " ".join(segment["text"] for segment in transcript)
+    # Text for topic summary / pattern extraction context only - never fed
+    # back into compute_structural_signals above, which already ran against
+    # the real (possibly empty) transcript. A description has no per-word
+    # timestamps, so treating it as a transcript there would fabricate
+    # hook/CTA/pacing numbers from text that was never actually timed.
+    context_transcript = transcript
+    if not transcript_text:
+        transcript_text = metadata.get("description") or ""
+        context_transcript = (
+            [{"text": transcript_text, "start": 0.0}] if transcript_text else []
+        )
     topic_summary = generate_topic_summary(metadata["title"], transcript_text)
     niche, similarity, decision = classify_niche(topic_summary)
     log.info(
@@ -128,7 +169,7 @@ def process_video(video_url: str, platform: str = DEFAULT_PLATFORM) -> bool:
 
     frame_paths, work_dir = _frames_for(video_url, metadata["duration_seconds"])
     try:
-        pattern = extract_pattern(metadata, transcript, signals, frame_paths)
+        pattern = extract_pattern(metadata, context_transcript, signals, frame_paths)
     finally:
         if work_dir:
             shutil.rmtree(work_dir, ignore_errors=True)
