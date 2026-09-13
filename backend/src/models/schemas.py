@@ -10,6 +10,14 @@ class BriefRequest(BaseModel):
     goal: Literal["reach", "engagement", "shares", "conversions"]
     audience: str
     brand_vibe: Literal["fun", "educational", "aspirational", "raw"]
+    # Optional: what KIND of video (product_demo, culture_relatable,
+    # testimonial_ugc, etc.) - orthogonal to niche. When set, retrieval
+    # prioritizes dropping niche before content_type in its fallback
+    # order, not the other way around: a business wanting a "culture"
+    # video can draw on culture-content patterns from other industries,
+    # since content type is what determines structural comparability
+    # here, not the product/topic. See retrieval.query_similar_patterns.
+    content_type: str | None = None
 
 
 class ScriptBeat(BaseModel):
@@ -35,6 +43,14 @@ class BriefResponse(BaseModel):
 class Pattern(BaseModel):
     niche: str
     platform: Literal["tiktok", "reels", "youtube_shorts"]
+    # What KIND of video this is (e.g. "product_demo", "routine_tutorial",
+    # "reaction_commentary", "culture_relatable", "haul_roundup",
+    # "educational_explainer", "testimonial_ugc",
+    # "before_after_transformation") - orthogonal to niche/topic. A
+    # product demo and a culture piece from the same niche don't share
+    # structural DNA; a culture piece from two different niches plausibly
+    # does. See BriefRequest.content_type and retrieval.py.
+    content_type: str
     hook_style: str
     hook_text: str
     hook_delivery_seconds: float
@@ -62,6 +78,7 @@ class NicheIntelligenceResponse(BaseModel):
     top_emotional_trigger: str
     avg_views: int
     top_cta_types: list[dict]  # [{cta: "follow", percent: 58}]
+    top_content_types: list[dict]  # [{content_type: "product_demo", percent: 58}]
     structural_benchmark: dict  # {hook_under_seconds: 2, payoff_before_seconds: 15, cta_after_percent: 80}
     whats_winning: str  # LLM-generated summary
     whats_saturated: str  # LLM-generated summary

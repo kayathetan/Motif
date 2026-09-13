@@ -30,7 +30,13 @@ async def generate_brief(request: BriefRequest) -> BriefResponse:
         f"{request.goal}, targeting {request.audience}, with a "
         f"{request.brand_vibe} brand vibe."
     )
+    if request.content_type:
+        query += f" Content type: {request.content_type}."
     patterns = query_similar_patterns(
-        query, n_results=6, niche=request.niche, platform=request.platform
+        query,
+        n_results=6,
+        niche=request.niche,
+        platform=request.platform,
+        content_type=request.content_type,
     )
     return generate_brief_from_patterns(patterns, request)

@@ -49,6 +49,14 @@ describe what happens in it. Think like someone reverse-engineering why
 this video performs, not someone writing a caption for it.
 
 For each field:
+- content_type: what KIND of video this is, independent of what industry
+  or product it's about - e.g. "product_demo", "routine_tutorial",
+  "reaction_commentary", "culture_relatable", "haul_roundup",
+  "educational_explainer", "testimonial_ugc", "before_after_transformation".
+  This is a different axis from the topic: two product demos from
+  different industries share more structural DNA with each other than a
+  product demo and a culture piece from the SAME industry do. Judge this
+  from what the video actually does, not from who posted it.
 - hook_style: name the technique (e.g. "bold claim", "pattern interrupt",
   "cold open result", "relatable pain point") - not a description of this
   video's specific hook.
@@ -89,6 +97,7 @@ not invent details you can't see or read.
 
 
 class _ExtractedPattern(BaseModel):
+    content_type: str
     hook_style: str
     hook_text: str
     visual_format: str

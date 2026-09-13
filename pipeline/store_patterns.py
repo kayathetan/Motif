@@ -35,6 +35,7 @@ _PATTERN_COLUMNS = (
     "published_at",
     "niche",
     "platform",
+    "content_type",
     "hook_style",
     "hook_text",
     "hook_delivery_seconds",
@@ -71,7 +72,8 @@ def build_document(pattern: dict) -> str:
     return " ".join(
         part
         for part in [
-            f"A {pattern['niche']} video on {pattern['platform']}.",
+            f"A {pattern['niche']} video on {pattern['platform']},"
+            f" of type {pattern['content_type']}.",
             f"The hook is {pattern['hook_style']}, delivered at"
             f" {pattern['hook_delivery_seconds']} seconds: \"{pattern['hook_text']}\".",
             f"Visual format is {pattern['visual_format']} with"

@@ -28,6 +28,9 @@ create table if not exists patterns (
     -- structural pattern fields, matching backend/src/models/schemas.py::Pattern
     niche text not null,
     platform text not null check (platform in ('tiktok', 'reels', 'youtube_shorts')),
+    -- What KIND of video (product_demo, culture_relatable, etc.) -
+    -- orthogonal to niche. See the note in schemas.py::Pattern.
+    content_type text not null,
     hook_style text not null,
     hook_text text not null,
     hook_delivery_seconds numeric not null,
@@ -65,6 +68,13 @@ create table if not exists patterns (
 -- Speeds up get_patterns_by_niche_platform().
 create index if not exists patterns_niche_platform_idx
     on patterns (niche, platform);
+
+-- Speeds up query_similar_patterns()'s content_type tiers (with and
+-- without a niche filter alongside it).
+create index if not exists patterns_content_type_idx
+    on patterns (content_type);
+create index if not exists patterns_niche_content_type_idx
+    on patterns (niche, content_type);
 
 -- Speeds up query_similar_patterns() cosine-distance search.
 -- Uses HNSW (pgvector >= 0.5.0, default on current Supabase projects).

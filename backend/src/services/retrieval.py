@@ -54,26 +54,45 @@ def query_similar_patterns(
     n_results: int = 6,
     niche: str | None = None,
     platform: str | None = None,
+    content_type: str | None = None,
 ) -> list[dict]:
     """
     Embed the query string and return the top N most similar patterns
     stored in Supabase, ranked by cosine distance (closest first).
 
-    When niche and platform are given, the search progressively broadens
-    rather than hard-filtering: same niche + same platform first; if that
-    returns fewer than MIN_PATTERNS_BEFORE_BROADENING rows, broaden to the
-    same niche across any platform; if still too few, fall back to a fully
-    unfiltered search. This keeps evidence grounded in the right niche
-    without going empty just because one niche/platform combination is
-    sparsely stocked - the library will be small, especially early on.
+    The search progressively broadens rather than hard-filtering, but
+    which constraint gets dropped first depends on whether content_type
+    was given:
+
+    Without content_type (niche/platform only, as before): same niche +
+    same platform first; then same niche, any platform; then fully open.
+
+    With content_type: niche is dropped BEFORE content_type, not after.
+    content_type ("product_demo", "culture_relatable", etc.) is what
+    determines structural comparability here, not niche/topic - a
+    business wanting a "culture" video can draw on culture-content
+    patterns from other industries, since a product demo and a culture
+    piece from the SAME niche don't share structural DNA the way two
+    culture pieces from different niches plausibly do:
+      1. niche + platform + content_type
+      2. niche + content_type (any platform)
+      3. content_type only (ANY niche) - the cross-industry tier
+      4. fully open, last resort
+
+    Either way, broadening only happens when a tier returns fewer than
+    MIN_PATTERNS_BEFORE_BROADENING rows - this keeps evidence as specific
+    as possible without going empty just because one combination is
+    sparsely stocked, which it will be, especially early on.
 
     Args:
         query: Natural language description of the desired content.
         n_results: Number of top matches to return.
-        niche: Content niche to prefer, e.g. "fitness". None = no filtering
-            at all (searches the whole table).
+        niche: Content niche to prefer, e.g. "fitness". None = not used
+            as a filter at all.
         platform: Platform to prefer alongside niche. Ignored if niche is
-            None.
+            None, or once content_type has dropped niche from the tier.
+        content_type: Content type to prefer, e.g. "product_demo". See
+            above for how this changes the fallback order.
 
     Returns:
         A list of pattern rows (dicts), each including a `distance` field
@@ -83,7 +102,18 @@ def query_similar_patterns(
     embedding = generate_embedding(query)
 
     tiers: list[tuple[str | None, tuple]] = []
-    if niche is not None and platform is not None:
+    if content_type is not None:
+        if niche is not None and platform is not None:
+            tiers.append(
+                (
+                    "niche = %s and platform = %s and content_type = %s",
+                    (niche, platform, content_type),
+                )
+            )
+        if niche is not None:
+            tiers.append(("niche = %s and content_type = %s", (niche, content_type)))
+        tiers.append(("content_type = %s", (content_type,)))
+    elif niche is not None and platform is not None:
         tiers.append(("niche = %s and platform = %s", (niche, platform)))
         tiers.append(("niche = %s", (niche,)))
     tiers.append((None, ()))  # fully open, last resort

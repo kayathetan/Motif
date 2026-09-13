@@ -20,6 +20,7 @@ client = OpenAI()
 AGGREGATOR_MODEL = os.getenv("AGGREGATOR_MODEL", "gpt-4o")
 
 TOP_CTA_TYPES_LIMIT = 3
+TOP_CONTENT_TYPES_LIMIT = 5
 
 SYSTEM_PROMPT = """
 You are a content strategy analyst summarising structural patterns across a
@@ -108,6 +109,15 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
         for cta, count in cta_counts.most_common(TOP_CTA_TYPES_LIMIT)
     ]
 
+    # content_type is orthogonal to niche (product_demo vs culture_relatable
+    # etc.) - this is the axis retrieval.py's content_type tiers filter on,
+    # and what a business would browse before asking for a specific type.
+    content_type_counts = Counter(p["content_type"] for p in patterns)
+    top_content_types = [
+        {"content_type": ct, "percent": round(count / total * 100, 1)}
+        for ct, count in content_type_counts.most_common(TOP_CONTENT_TYPES_LIMIT)
+    ]
+
     # Postgres numeric columns (hook_delivery_seconds, payoff_seconds,
     # cta_placement_percent) come back from psycopg as Decimal, not float.
     # structural_benchmark is a plain dict (not a typed model), so nothing
@@ -151,6 +161,7 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
         top_emotional_trigger=top_emotional_trigger,
         avg_views=avg_views,
         top_cta_types=top_cta_types,
+        top_content_types=top_content_types,
         structural_benchmark=structural_benchmark,
         whats_winning=trends.whats_winning,
         whats_saturated=trends.whats_saturated,
