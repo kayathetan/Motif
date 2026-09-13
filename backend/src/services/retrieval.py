@@ -2,6 +2,7 @@
 # content patterns. Table: "patterns" (see backend/sql/schema.sql).
 
 import os
+from pathlib import Path
 
 import psycopg
 from dotenv import load_dotenv
@@ -10,7 +11,9 @@ from psycopg.rows import dict_row
 
 from src.services.embeddings import generate_embedding
 
-load_dotenv()
+# See the matching note in embeddings.py - load_dotenv() with no args
+# doesn't reliably find backend/.env depending on the process's cwd.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 
 def get_connection() -> psycopg.Connection:
@@ -149,3 +152,28 @@ def get_patterns_by_niche_platform(niche: str, platform: str) -> list[dict]:
                 (niche, platform),
             )
             return cur.fetchall()
+
+
+def get_known_content_types() -> list[str]:
+    """
+    Every content_type ever used, so brief_generator.infer_content_type()
+    can be nudged to reuse an existing label instead of inventing a
+    near-duplicate ("product_demo" vs "product_demonstration") that
+    query_similar_patterns's content_type-scoped tiers won't match (they
+    key on the exact string, with no fuzzy matching) - silently pushing
+    every such request down to a weaker fallback tier.
+
+    Mirrors pipeline/classify_niche.py's function of the same name rather
+    than importing it: pipeline/ and backend/ are kept standalone from
+    each other (pipeline/ isn't guaranteed to be on backend's import path
+    in a production deploy), same as embeddings.py already duplicates
+    pipeline/store_patterns.py's generate_embedding() instead of sharing it.
+
+    Returns:
+        Sorted list of known content types. Empty before anything's been
+        stored yet.
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("select name from content_types order by name")
+            return [row["name"] for row in cur.fetchall()]

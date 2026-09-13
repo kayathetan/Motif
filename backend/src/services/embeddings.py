@@ -2,10 +2,17 @@
 # Used by retrieval.py (query embedding) and pipeline/store_patterns.py
 # (pattern document embedding).
 
+from pathlib import Path
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
+# load_dotenv() with no args searches upward from the current working
+# directory - only finds backend/.env if the process happens to be
+# launched with cwd=backend/. Point at it explicitly, same fix
+# pipeline/*.py already applies (see e.g. youtube_fetcher.py) for the
+# identical reason.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 client = OpenAI()
 

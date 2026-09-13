@@ -21,7 +21,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from pipeline.classify_niche import classify_niche, generate_topic_summary
+from pipeline.classify_niche import (
+    classify_niche,
+    generate_topic_summary,
+    invalidate_niche_centroid_cache,
+)
 from pipeline.pattern_extractor import extract_pattern
 from pipeline.store_patterns import store_pattern
 from pipeline.video_processor import download_video, extract_frames
@@ -145,6 +149,12 @@ def process_video(video_url: str, platform: str = DEFAULT_PLATFORM) -> bool:
 
     store_pattern({**metadata, **pattern, "topic_summary": topic_summary})
     log.info("  stored")
+
+    # This video's topic_embedding just changed (or grew) the niche it
+    # belongs to - drop the cached centroids so the next video in this
+    # run classifies against up-to-date data instead of a stale snapshot
+    # from before this store. See classify_niche.compute_niche_centroids.
+    invalidate_niche_centroid_cache()
     return True
 
 

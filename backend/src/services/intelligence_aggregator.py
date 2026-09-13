@@ -7,6 +7,7 @@
 
 import os
 from collections import Counter
+from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -14,7 +15,9 @@ from pydantic import BaseModel
 
 from src.models.schemas import NicheIntelligenceResponse
 
-load_dotenv()
+# See the matching note in embeddings.py - load_dotenv() with no args
+# doesn't reliably find backend/.env depending on the process's cwd.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 client = OpenAI()
 AGGREGATOR_MODEL = os.getenv("AGGREGATOR_MODEL", "gpt-4o")

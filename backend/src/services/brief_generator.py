@@ -32,6 +32,7 @@
 
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
@@ -39,8 +40,11 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 from src.models.schemas import BriefRequest, BriefResponse, Pattern
+from src.services.retrieval import get_known_content_types
 
-load_dotenv()
+# See the matching note in embeddings.py - load_dotenv() with no args
+# doesn't reliably find backend/.env depending on the process's cwd.
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 # Initialise once rather than recreating the client for every request.
 client = OpenAI(
@@ -179,6 +183,22 @@ def infer_content_type(request: BriefRequest) -> str | None:
     if not request.creative_vision and not request.topic:
         return None
 
+    # Ground the guess in what's actually stored, same principle
+    # pattern_extractor.py already applies on the ingestion side: reusing
+    # an existing label keeps this an exact-match hit in
+    # retrieval.query_similar_patterns's content_type tiers, instead of a
+    # near-duplicate ("product_demonstration") that silently matches
+    # nothing and falls back further than it should.
+    known_content_types = get_known_content_types()
+    known_types_block = (
+        "EXISTING CONTENT TYPES already used in the pattern library - "
+        "prefer reusing one of these if it genuinely fits (a "
+        "near-duplicate of an existing one fragments retrieval for no "
+        "reason):\n" + ", ".join(known_content_types) + "\n\n"
+        if known_content_types
+        else ""
+    )
+
     prompt = f"""
 Given a business's creative direction for a short-form video, infer which
 content_type category (if any) they are CLEARLY asking for - e.g.
@@ -186,11 +206,12 @@ content_type category (if any) they are CLEARLY asking for - e.g.
 "culture_relatable", "haul_roundup", "educational_explainer",
 "testimonial_ugc", "before_after_transformation", "trailer_promo".
 
-Creative vision: {request.creative_vision or "(not specified)"}
+{known_types_block}Creative vision: {request.creative_vision or "(not specified)"}
 Topic: {request.topic or "(not specified)"}
 
 Return null unless the text clearly signals one specific type - do not
-guess from vague or generic descriptions.
+guess from vague or generic descriptions. Only introduce a new type if
+none of the existing ones actually describe it.
 """
     response = client.responses.parse(
         model=BRIEF_MODEL,

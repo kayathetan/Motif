@@ -1,7 +1,37 @@
 /**
  * Thin client for the FastAPI backend. Vite proxies /api to
  * http://127.0.0.1:8000 in dev (see vite.config.js).
+ *
+ * Both routes below now require a real Clerk session server-side (see
+ * backend/src/services/auth.py) - previously the backend had no auth at
+ * all, and this file never attached a token even for real signed-in
+ * users. Callers now pass Clerk's getToken (from useAuth()) so the token
+ * can be attached as `Authorization: Bearer <token>`.
  */
+import { isDemo } from './demo.js'
+
+/**
+ * Thrown instead of calling the network in demo mode. demo.js's own
+ * comment already says a demo visitor "grants no token and no backend
+ * access... deliberate" - now that the backend actually enforces that,
+ * calling these routes for a demo visitor would just 401. Short-circuit
+ * before the network call instead of letting that round-trip happen, so
+ * callers can show a calm explanatory state instead of a fetch failure.
+ */
+export class DemoModeUnavailable extends Error {
+  constructor() {
+    super(
+      'Demo mode shows the full interface without live generation - sign in for a real, measured result.'
+    )
+    this.name = 'DemoModeUnavailable'
+  }
+}
+
+/** {} when signed out (getToken() resolves null) rather than sending a bogus header. */
+async function authHeaders(getToken) {
+  const token = await getToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 // The backend takes one platform from a fixed 3-value set; the campaign
 // form's labels are close but not identical.
@@ -54,11 +84,21 @@ export function toBriefRequest(brief) {
   }
 }
 
-/** POST /api/brief/generate. Throws with a readable message on failure. */
-export async function generateBrief(brief) {
+/**
+ * POST /api/brief/generate. Throws with a readable message on failure -
+ * or DemoModeUnavailable, without ever calling the network, in demo mode.
+ *
+ * Args:
+ *   brief: The campaign inputs (store.jsx shape).
+ *   getToken: Clerk's useAuth().getToken, so the request carries a real
+ *     session token - the backend now requires one.
+ */
+export async function generateBrief(brief, getToken) {
+  if (isDemo()) throw new DemoModeUnavailable()
+
   const res = await fetch('/api/brief/generate', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders(getToken)) },
     body: JSON.stringify(toBriefRequest(brief)),
   })
   if (!res.ok) {
@@ -72,12 +112,21 @@ export async function generateBrief(brief) {
  * GET /api/intelligence/{niche}/{platform}. Returns null (not a throw) on a
  * 404 - no patterns for this niche/platform yet is an expected, normal
  * state (e.g. a brand-new niche, or the library hasn't been built yet),
- * not an error condition for the caller to handle specially.
+ * not an error condition for the caller to handle specially. Throws
+ * DemoModeUnavailable, without ever calling the network, in demo mode -
+ * see generateBrief's docstring.
+ *
+ * Args:
+ *   niche, platform: As before.
+ *   getToken: Clerk's useAuth().getToken - see generateBrief.
  */
-export async function fetchIntelligence(niche, platform) {
+export async function fetchIntelligence(niche, platform, getToken) {
+  if (isDemo()) throw new DemoModeUnavailable()
+
   const backendPlatform = PLATFORM_TO_BACKEND[platform] || 'tiktok'
   const res = await fetch(
-    `/api/intelligence/${encodeURIComponent(niche)}/${encodeURIComponent(backendPlatform)}`
+    `/api/intelligence/${encodeURIComponent(niche)}/${encodeURIComponent(backendPlatform)}`,
+    { headers: await authHeaders(getToken) }
   )
   if (res.status === 404) return null
   if (!res.ok) {

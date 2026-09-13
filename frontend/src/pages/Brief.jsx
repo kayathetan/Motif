@@ -1,32 +1,41 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '@clerk/react'
 import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
 import Pills from '../components/Pills.jsx'
 import { useBrief } from '../store.jsx'
-import { generateBrief } from '../api.js'
+import { generateBrief, DemoModeUnavailable } from '../api.js'
 
 export default function Brief() {
   const { brief } = useBrief()
+  const { getToken } = useAuth()
   const [state, setState] = useState({ status: 'loading', data: null, error: null })
 
   useEffect(() => {
     let cancelled = false
     setState({ status: 'loading', data: null, error: null })
 
-    generateBrief(brief)
+    generateBrief(brief, getToken)
       .then((data) => {
         if (!cancelled) setState({ status: 'ready', data, error: null })
       })
       .catch((error) => {
-        if (!cancelled) setState({ status: 'error', data: null, error })
+        if (cancelled) return
+        if (error instanceof DemoModeUnavailable) {
+          setState({ status: 'demo', data: null, error })
+        } else {
+          setState({ status: 'error', data: null, error })
+        }
       })
 
     return () => {
       cancelled = true
     }
     // Regenerate only when the campaign inputs actually change, not on
-    // every render.
+    // every render - getToken is a new function reference from useAuth()
+    // on most renders, and isn't itself something that should retrigger
+    // generation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brief.niche, brief.platform, brief.audience, brief.objectives, brief.tone])
 
@@ -54,6 +63,20 @@ export default function Brief() {
                 Reasoning over structural patterns from top-performing {brief.niche} content on {brief.platform}…
               </p>
               <p style={{ fontSize: 13, color: 'var(--label)', marginTop: 8 }}>Usually takes 10–20 seconds.</p>
+            </div>
+          </div>
+        )}
+
+        {state.status === 'demo' && (
+          <div className="sec" style={{ marginTop: 40 }}>
+            <div className="card" style={{ padding: '40px' }}>
+              <p style={{ fontWeight: 510, fontSize: 15.5 }}>This is a preview, not a live brief</p>
+              <p style={{ color: 'var(--ink-2)', marginTop: 8, fontSize: 13.5, maxWidth: '60ch' }}>
+                {state.error.message}
+              </p>
+              <p style={{ marginTop: 20 }}>
+                <Link className="btn-primary" to="/signup">Create an account →</Link>
+              </p>
             </div>
           </div>
         )}

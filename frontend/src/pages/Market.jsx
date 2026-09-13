@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '@clerk/react'
 import Mesh from '../components/Mesh.jsx'
 import Nav from '../components/Nav.jsx'
 import { useBrief } from '../store.jsx'
-import { fetchIntelligence } from '../api.js'
+import { fetchIntelligence, DemoModeUnavailable } from '../api.js'
 
 /**
  * Market intelligence for a category - real data from GET
@@ -19,24 +20,34 @@ import { fetchIntelligence } from '../api.js'
  */
 export default function Market() {
   const { brief } = useBrief()
+  const { getToken } = useAuth()
   const [state, setState] = useState({ status: 'loading', data: null, error: null })
 
   useEffect(() => {
     let cancelled = false
     setState({ status: 'loading', data: null, error: null })
 
-    fetchIntelligence(brief.niche, brief.platform)
+    fetchIntelligence(brief.niche, brief.platform, getToken)
       .then((data) => {
         if (cancelled) return
         setState(data ? { status: 'ready', data, error: null } : { status: 'empty', data: null, error: null })
       })
       .catch((error) => {
-        if (!cancelled) setState({ status: 'error', data: null, error })
+        if (cancelled) return
+        if (error instanceof DemoModeUnavailable) {
+          setState({ status: 'demo', data: null, error })
+        } else {
+          setState({ status: 'error', data: null, error })
+        }
       })
 
     return () => {
       cancelled = true
     }
+    // getToken is a new function reference from useAuth() on most
+    // renders and isn't itself something that should retrigger the fetch
+    // - see the same note in Brief.jsx.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brief.niche, brief.platform])
 
   const data = state.data
@@ -71,6 +82,20 @@ export default function Market() {
           <div className="sec" style={{ marginTop: 52 }}>
             <div className="card" style={{ padding: '48px 40px', textAlign: 'center' }}>
               <p style={{ fontSize: 15.5, color: 'var(--ink-2)' }}>Aggregating patterns for {brief.niche}…</p>
+            </div>
+          </div>
+        )}
+
+        {state.status === 'demo' && (
+          <div className="sec" style={{ marginTop: 52 }}>
+            <div className="card" style={{ padding: 40 }}>
+              <p style={{ fontSize: 15.5, fontWeight: 510 }}>This is a preview, not live intelligence</p>
+              <p style={{ color: 'var(--ink-2)', marginTop: 8, fontSize: 13.5, maxWidth: '60ch' }}>
+                {state.error.message}
+              </p>
+              <p style={{ marginTop: 20 }}>
+                <Link className="btn-primary" to="/signup">Create an account →</Link>
+              </p>
             </div>
           </div>
         )}

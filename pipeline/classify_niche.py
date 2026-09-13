@@ -133,6 +133,33 @@ def get_known_content_types() -> list[str]:
             return [row[0] for row in cur.fetchall()]
 
 
+# Cache for compute_niche_centroids(), since build_library.py calls
+# classify_niche() (and therefore this) once per video in a run - without
+# caching, every single video re-fetches and re-averages every
+# topic_embedding in the whole patterns table, even for a long run of
+# videos that all get skipped (no confident niche match) or fail before
+# ever storing anything, none of which could have changed the centroids
+# since the last computation. None means "not computed yet this run" -
+# distinct from an empty dict, which is the real, valid answer before
+# anything's ever been stored (see the docstring below).
+_centroid_cache: dict[str, tuple[list[float], int]] | None = None
+
+
+def invalidate_niche_centroid_cache() -> None:
+    """
+    Drop the cached centroids so the next compute_niche_centroids() call
+    recomputes from the database.
+
+    Call this after storing a new pattern (see
+    pipeline/store_patterns.py's store_pattern and
+    pipeline/build_library.py's process_video) - that's the only thing
+    that can actually change a centroid mid-run. Skipped or failed videos
+    don't touch the patterns table, so they never need to invalidate.
+    """
+    global _centroid_cache
+    _centroid_cache = None
+
+
 def compute_niche_centroids() -> dict[str, tuple[list[float], int]]:
     """
     Average topic_embedding per niche, computed from every pattern
@@ -143,12 +170,21 @@ def compute_niche_centroids() -> dict[str, tuple[list[float], int]]:
     Uses topic_embedding, not the structural-pattern embedding column -
     see generate_topic_summary()'s docstring for why they can't be mixed.
 
+    Cached for the duration of a build_library.py run (see
+    invalidate_niche_centroid_cache) - the raw query fetches every
+    topic_embedding in the table, which otherwise repeats for every video
+    processed regardless of whether the table actually changed since.
+
     Returns:
         {niche: (centroid_embedding, example_count)}. example_count lets
         the caller relax thresholds for a niche that's still sparse - see
         MATURE_NICHE_SIZE. Empty dict if no rows have a topic_embedding
         yet (e.g. before backfilling older rows).
     """
+    global _centroid_cache
+    if _centroid_cache is not None:
+        return _centroid_cache
+
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         # Without this, the vector column comes back as its raw string
         # representation ("[0.001,0.002,...]"), not a list of floats -
@@ -175,6 +211,8 @@ def compute_niche_centroids() -> dict[str, tuple[list[float], int]]:
             sum(e[i] for e in embeddings) / len(embeddings) for i in range(dims)
         ]
         centroids[niche] = (centroid, len(embeddings))
+
+    _centroid_cache = centroids
     return centroids
 
 
