@@ -11,12 +11,16 @@
 import { isDemo } from './demo.js'
 
 /**
- * Thrown instead of calling the network in demo mode. demo.js's own
- * comment already says a demo visitor "grants no token and no backend
- * access... deliberate" - now that the backend actually enforces that,
- * calling these routes for a demo visitor would just 401. Short-circuit
- * before the network call instead of letting that round-trip happen, so
- * callers can show a calm explanatory state instead of a fetch failure.
+ * Thrown instead of calling the network in demo mode - by generateBrief
+ * only. A demo visitor has no token, and brief generation is gated behind
+ * a verified Clerk session server-side because every brief is a distinct,
+ * uncacheable GPT-4o call. Short-circuit before the network instead of
+ * letting a guaranteed 401 round-trip, so callers can show a calm
+ * explanatory state rather than a fetch failure.
+ *
+ * fetchIntelligence deliberately does NOT throw this: that route serves
+ * anonymous callers and caches its one LLM call, so a demo visitor sees
+ * real aggregated market data. See backend/src/routers/intelligence.py.
  */
 export class DemoModeUnavailable extends Error {
   constructor() {
@@ -112,16 +116,22 @@ export async function generateBrief(brief, getToken) {
  * GET /api/intelligence/{niche}/{platform}. Returns null (not a throw) on a
  * 404 - no patterns for this niche/platform yet is an expected, normal
  * state (e.g. a brand-new niche, or the library hasn't been built yet),
- * not an error condition for the caller to handle specially. Throws
- * DemoModeUnavailable, without ever calling the network, in demo mode -
- * see generateBrief's docstring.
+ * not an error condition for the caller to handle specially.
+ *
+ * Works signed in or not: the backend route accepts anonymous callers, so
+ * this never throws DemoModeUnavailable - a /demo visitor sees the same
+ * real aggregate a signed-in user does.
  *
  * Args:
  *   niche, platform: As before.
- *   getToken: Clerk's useAuth().getToken - see generateBrief.
+ *   getToken: Clerk's useAuth().getToken - see generateBrief. Resolves
+ *     null when signed out, in which case no Authorization header is sent.
  */
 export async function fetchIntelligence(niche, platform, getToken) {
-  if (isDemo()) throw new DemoModeUnavailable()
+  // No isDemo() short-circuit: this route is open to anonymous callers,
+  // so a demo visitor gets the same real data a signed-in user does.
+  // authHeaders() sends no Authorization header when getToken() resolves
+  // null, which is exactly what the backend's optional_user expects.
 
   const backendPlatform = PLATFORM_TO_BACKEND[platform] || 'tiktok'
   const res = await fetch(

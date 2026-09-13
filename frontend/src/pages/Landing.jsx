@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ClerkLoaded, ClerkLoading, Show } from '@clerk/react'
 import ShaderBackground from '../components/ShaderBackground.jsx'
 import Nav from '../components/Nav.jsx'
 import { useBrief } from '../store.jsx'
@@ -7,8 +8,8 @@ import { useBrief } from '../store.jsx'
 const product = [
   {
     kicker: 'Market research',
-    title: 'What your category\u2019s attention costs',
-    body: <>Volume, growth, saturation, share of voice and the clearing price of a thousand views organic against paid. <b>A market report, not a trend list</b></>
+    title: 'What your category actually rewards',
+    body: <>The dominant format, how fast the hook lands, which content and CTA types the top performers use, and the structural benchmark they hit. <b>A measured report, not a trend list</b></>
   },
   {
     kicker: 'Production',
@@ -85,13 +86,13 @@ export default function Landing() {
             />
             <button className="btn-primary" type="submit">Run a brief</button>
           </div>
-          <p className="under">Live market data across 38 categories · refreshed daily</p>
+          <p className="under">Structural patterns measured from public short-form video</p>
         </form>
 
         <div className="pills" style={{ marginTop: 34 }}>
           <span className="pill">Category benchmarks</span>
-          <span className="pill">Cost of attention</span>
-          <span className="pill">Share of voice</span>
+          <span className="pill">Hook timing</span>
+          <span className="pill">Format breakdown</span>
           <span className="pill">Briefs your team can execute</span>
         </div>
       </div>
@@ -102,24 +103,24 @@ export default function Landing() {
         <div className="sec" style={{ marginTop: 56 }}>
           <div className="statrow">
             <div className="card stat">
-              <p className="sl">Attention measured · 30d</p>
-              <p className="sv">4.9<span className="su">B views</span></p>
-              <p className="sn">Across <b>38 categories</b> on Reels, TikTok and Shorts.</p>
+              <p className="sl">Views analysed</p>
+              <p className="sv">46.1<span className="su">M views</span></p>
+              <p className="sn">Across every video in the <b>structural pattern library</b>.</p>
             </div>
             <div className="card stat">
-              <p className="sl">Organic vs paid, per 1,000 views</p>
-              <p className="sv">6.1<span className="su">x spread</span></p>
-              <p className="sn"><b>$2.40 organic against $14.60 paid.</b> Structure decides which one you pay.</p>
+              <p className="sl">Patterns measured</p>
+              <p className="sv">44<span className="su">videos</span></p>
+              <p className="sn">Each one read for <b>hook, pacing, format and CTA</b> structure.</p>
             </div>
             <div className="card stat">
-              <p className="sl">Median hit rate before Motif</p>
-              <p className="sv">1<span className="su">in 9 posts</span></p>
-              <p className="sn">Most published content never clears its category&apos;s median. <b>That is the waste.</b></p>
+              <p className="sl">Median hook delivery</p>
+              <p className="sv">1.05<span className="su">seconds</span></p>
+              <p className="sn">How fast top performers <b>reach their first real word</b>.</p>
             </div>
             <div className="card stat">
               <p className="sl">Time to a shootable brief</p>
               <p className="sv">20<span className="su">seconds</span></p>
-              <p className="sn">Against <b>days of strategist time</b> per campaign.</p>
+              <p className="sn">A full scene-by-scene brief, against <b>days of strategist time</b>.</p>
             </div>
           </div>
         </div>
@@ -171,15 +172,48 @@ export default function Landing() {
             <h4 style={{ fontSize: 36, letterSpacing: '-.04em', marginTop: 14 }}>
               See what your category is actually doing
             </h4>
-            <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
-              Create a demo workspace and run one brief against your own category. No card required, nothing stored.
-            </p>
-            <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <Link className="btn-primary" to="/signup">Create an account →</Link>
-              <Link className="btn-ghost" to="/demo" style={{ alignSelf: 'center' }}>
-                or explore the demo, no sign-up
-              </Link>
-            </p>
+            {/* Asking a signed-in user to "create an account" reads as a
+                bug, so the two states get their own copy and destination.
+                Wrapped in ClerkLoaded so the first paint doesn't flash the
+                signed-out version at someone who is already signed in -
+                Show renders nothing until Clerk resolves, and without the
+                wrapper neither branch would appear during that gap. */}
+            {/* Holds the card's height while Clerk resolves. Without it the
+                ClerkLoaded block is genuinely empty for that beat and the
+                card renders as a heading over blank space - brief, but this
+                is the landing page's closing CTA. Deliberately neutral
+                rather than optimistically rendering the signed-out copy,
+                which would flash "Create an account" at someone who is
+                already signed in. */}
+            <ClerkLoading>
+              <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5, minHeight: 98 }}>
+                Run one brief against your own category.
+              </p>
+            </ClerkLoading>
+            <ClerkLoaded>
+              <Show when="signed-out">
+                <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
+                  Create a demo workspace and run one brief against your own category. No card required, nothing stored.
+                </p>
+                <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <Link className="btn-primary" to="/signup">Create an account →</Link>
+                  <Link className="btn-ghost" to="/demo" style={{ alignSelf: 'center' }}>
+                    or explore the demo, no sign-up
+                  </Link>
+                </p>
+              </Show>
+              <Show when="signed-in">
+                <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
+                  You&apos;re signed in. Pick a workflow and run a brief against your category.
+                </p>
+                <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <Link className="btn-primary" to="/choose">Go to your workspace →</Link>
+                  <Link className="btn-ghost" to="/market" style={{ alignSelf: 'center' }}>
+                    or read the market first
+                  </Link>
+                </p>
+              </Show>
+            </ClerkLoaded>
           </div>
         </div>
       </div>
@@ -190,7 +224,10 @@ export default function Landing() {
           derived from transcript timing across public content in your category.{' '}
           <b>Visual and frame-level analysis is the next phase.</b>
         </p>
-        <Link className="btn-dark" to="/signup">Book a demo →</Link>
+        <ClerkLoaded>
+          <Show when="signed-out"><Link className="btn-dark" to="/signup">Book a demo →</Link></Show>
+          <Show when="signed-in"><Link className="btn-dark" to="/choose">Open Motif →</Link></Show>
+        </ClerkLoaded>
       </div>
     </>
   )

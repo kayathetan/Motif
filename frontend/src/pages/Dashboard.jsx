@@ -82,7 +82,7 @@ export default function Dashboard() {
         <h1 className="sm">{orgName ? `Welcome back, ${orgName}` : 'Welcome back'}</h1>
       </div>
 
-      <div className="wrap" style={{ paddingBottom: 80 }}>
+      <div className="wrap">
         <div className="dash-actions">
           <Link className="dash-card" to="/inputs">
             <p className="dl">New brief</p>
