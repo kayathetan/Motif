@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ClerkLoaded, Show } from '@clerk/react'
+import { ClerkLoaded, ClerkLoading, Show } from '@clerk/react'
 import ShaderBackground from '../components/ShaderBackground.jsx'
 import Nav from '../components/Nav.jsx'
 import { useBrief } from '../store.jsx'
@@ -178,6 +178,18 @@ export default function Landing() {
                 signed-out version at someone who is already signed in -
                 Show renders nothing until Clerk resolves, and without the
                 wrapper neither branch would appear during that gap. */}
+            {/* Holds the card's height while Clerk resolves. Without it the
+                ClerkLoaded block is genuinely empty for that beat and the
+                card renders as a heading over blank space - brief, but this
+                is the landing page's closing CTA. Deliberately neutral
+                rather than optimistically rendering the signed-out copy,
+                which would flash "Create an account" at someone who is
+                already signed in. */}
+            <ClerkLoading>
+              <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5, minHeight: 98 }}>
+                Run one brief against your own category.
+              </p>
+            </ClerkLoading>
             <ClerkLoaded>
               <Show when="signed-out">
                 <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
