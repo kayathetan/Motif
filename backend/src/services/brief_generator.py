@@ -74,6 +74,9 @@ You must reason from the supplied evidence and adapt it to:
 - content goal
 - target audience
 - brand vibe
+- their organization_name and brand_description, when given - who this
+  business actually is, so recommendations fit their real positioning
+  instead of generic advice for the niche at large
 - their creative vision and topic, when given - these describe what THIS
   specific video should be, on top of the general niche patterns
 - their production resources, when given - only specify shots the

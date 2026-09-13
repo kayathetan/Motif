@@ -90,6 +90,35 @@ create table if not exists patterns (
     topic_embedding vector(1536)
 );
 
+-- Per-account brand/organization profile, collected once during onboarding
+-- and folded into every subsequent brief as extra context - see
+-- migrations/0007 for the full rationale. Keyed by Clerk user id.
+create table if not exists brand_profiles (
+    user_id text primary key,
+    organization_name text not null,
+    description text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+-- Every successfully generated brief, saved automatically - see
+-- migrations/0008 for the full rationale. Keyed by Clerk user id (not
+-- unique - one user has many).
+create table if not exists saved_briefs (
+    id bigint generated always as identity primary key,
+    user_id text not null,
+    created_at timestamptz not null default now(),
+    niche text not null,
+    platform text not null,
+    goal text not null,
+    audience text not null,
+    topic text,
+    brief jsonb not null
+);
+
+create index if not exists saved_briefs_user_id_created_at_idx
+    on saved_briefs (user_id, created_at desc);
+
 -- Speeds up get_patterns_by_niche_platform().
 create index if not exists patterns_niche_platform_idx
     on patterns (niche, platform);

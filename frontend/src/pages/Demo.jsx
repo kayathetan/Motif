@@ -8,7 +8,7 @@ export default function Demo() {
 
   useEffect(() => {
     enableDemo()
-    navigate('/market', { replace: true })
+    navigate('/dashboard', { replace: true })
   }, [navigate])
 
   return <div className="authwait">Opening the demo…</div>

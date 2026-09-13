@@ -7,21 +7,30 @@
 # retrieves the top 6 similar patterns (preferring the request's
 # niche/platform - see retrieval.query_similar_patterns for the
 # progressive broadening logic), and calls brief_generator to produce a
-# structured brief.
+# structured brief. Also folds in the account's saved brand profile
+# (services/brand_profile.py), if any - collected once during onboarding,
+# not sent by the frontend on this request - and saves every successful
+# generation to the user's brief history (services/saved_briefs.py) for
+# routers/briefs.py to list/serve back.
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.models.schemas import BriefGenerationResponse, BriefRequest
 from src.services.auth import authenticated_user
+from src.services.brand_profile import get_brand_profile
 from src.services.brief_generator import (
     generate_brief as generate_brief_from_patterns,
 )
 from src.services.brief_generator import infer_content_type
 from src.services.rate_limit import enforce_brief_rate_limit
 from src.services.retrieval import query_similar_patterns
+from src.services.saved_briefs import save_generated_brief
 from src.services.taxonomy import canonicalize_content_type, canonicalize_niche
+
+log = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -59,6 +68,15 @@ async def generate_brief(
     canonical_niche = canonicalize_niche(request.niche)
     niche_recognized = canonical_niche is not None
 
+    # Fold in the account's saved brand profile (Onboarding.jsx), if any -
+    # not sent by the frontend, there's no client input for either field
+    # on BriefRequest. A user who skipped onboarding simply has none;
+    # get_brand_profile() returns None rather than erroring for that case.
+    profile = get_brand_profile(user_id)
+    if profile:
+        request.organization_name = profile.organization_name
+        request.brand_description = profile.description
+
     query = (
         f"{request.niche} {request.platform} content optimised for "
         f"{request.goal}, targeting {request.audience}, with a "
@@ -68,6 +86,10 @@ async def generate_brief(
         query += f" Creative vision: {request.creative_vision}"
     if request.topic:
         query += f" Topic: {request.topic}."
+    if profile:
+        query += f" Brand: {profile.organization_name}."
+        if profile.description:
+            query += f" {profile.description}"
 
     # No dedicated UI control for this - inferred from creative_vision/topic
     # when not explicitly set. See infer_content_type()'s docstring.
@@ -96,4 +118,14 @@ async def generate_brief(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"Brief generation failed: {exc}",
         ) from exc
-    return BriefGenerationResponse(**brief.model_dump(), niche_recognized=niche_recognized)
+    response = BriefGenerationResponse(**brief.model_dump(), niche_recognized=niche_recognized)
+
+    # Best-effort: a save failure shouldn't turn a successful generation
+    # into a 500 for the user. They just won't see this one in their
+    # dashboard history - the brief itself still returns normally.
+    try:
+        save_generated_brief(user_id, request, response)
+    except Exception:
+        log.exception("Failed to save generated brief for user_id=%s", user_id)
+
+    return response

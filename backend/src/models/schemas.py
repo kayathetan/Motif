@@ -1,5 +1,7 @@
 # Pydantic request/response models shared across routers and services.
 
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 from typing import Literal
 
@@ -27,6 +29,25 @@ class BriefRequest(BaseModel):
     resources: list[str] | None = None  # e.g. ["Phone only", "Tripod"]
     duration: str | None = None  # target length, e.g. "0:45"
     constraints: str | None = None  # brand guidelines, legal, etc.
+    # Populated server-side in routers/brief.py from the account's saved
+    # brand_profiles row (see services/brand_profile.py), not sent by the
+    # frontend - there's no client input for either field. Plain
+    # attributes here (not Field(exclude=...)) since generate_brief()
+    # dumps the whole request straight into the LLM prompt payload
+    # (brief_generator.py's user_request) and this context belongs there.
+    organization_name: str | None = None
+    brand_description: str | None = None
+
+
+class BrandProfile(BaseModel):
+    """
+    A signed-in user's brand/organization context, collected once during
+    onboarding (frontend/src/pages/Onboarding.jsx) rather than re-entered
+    on every brief. See services/brand_profile.py and routers/profile.py.
+    """
+
+    organization_name: str
+    description: str | None = None
 
 
 class ScriptBeat(BaseModel):
@@ -72,6 +93,30 @@ class BriefGenerationResponse(BriefResponse):
     """
 
     niche_recognized: bool = True
+
+
+class SavedBriefSummary(BaseModel):
+    """
+    List-view shape for GET /api/briefs - enough to render a clickable
+    row on the dashboard's brief history without pulling every saved
+    brief's full generated content just to list them. See
+    services/saved_briefs.py and backend/sql/migrations/0008.
+    """
+
+    id: int
+    niche: str
+    platform: Literal["tiktok", "reels", "youtube_shorts"]
+    goal: Literal["reach", "engagement", "shares", "conversions"]
+    audience: str
+    topic: str | None = None
+    created_at: datetime
+
+
+class SavedBrief(SavedBriefSummary):
+    """Full shape for GET /api/briefs/{id} - the list fields plus the
+    actual generated brief content."""
+
+    brief: BriefGenerationResponse
 
 
 class Pattern(BaseModel):

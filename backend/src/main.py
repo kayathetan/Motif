@@ -14,7 +14,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.routers import brief, intelligence
+from src.routers import brief, briefs, intelligence, profile
 
 app = FastAPI(title="Motif Content Intelligence API")
 
@@ -27,4 +27,6 @@ app.add_middleware(
 )
 
 app.include_router(brief.router)
+app.include_router(briefs.router)
 app.include_router(intelligence.router)
+app.include_router(profile.router)

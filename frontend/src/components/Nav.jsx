@@ -35,7 +35,7 @@ export default function Nav({ variant = 'marketing', links = [], action = null }
               <Link className="btn-dark" to="/signup">Get started</Link>
             </Show>
             <Show when="signed-in">
-              <Link className="btn-ghost" to="/market">Dashboard</Link>
+              <Link className="btn-ghost" to="/dashboard">Dashboard</Link>
               <UserButton afterSignOutUrl="/" />
             </Show>
           </>

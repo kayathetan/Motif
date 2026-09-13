@@ -9,7 +9,7 @@ export default function SignInPage() {
       <Nav variant="back" />
       <div className="sheet">
         <div className="authcard">
-          <SignIn signUpUrl="/signup" forceRedirectUrl="/inputs" />
+          <SignIn signUpUrl="/signup" forceRedirectUrl="/dashboard" />
         </div>
       </div>
     </>

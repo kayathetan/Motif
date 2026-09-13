@@ -135,3 +135,76 @@ export async function fetchIntelligence(niche, platform, getToken) {
   }
   return res.json()
 }
+
+/**
+ * GET /api/profile. Returns null (not a throw) on a 404 - "hasn't
+ * completed onboarding yet" is expected for a user who skipped it, not
+ * an error. Throws DemoModeUnavailable, without ever calling the
+ * network, in demo mode - see generateBrief's docstring.
+ */
+export async function fetchBrandProfile(getToken) {
+  if (isDemo()) throw new DemoModeUnavailable()
+
+  const res = await fetch('/api/profile', { headers: await authHeaders(getToken) })
+  if (res.status === 404) return null
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Profile fetch failed (${res.status}): ${body || res.statusText}`)
+  }
+  return res.json()
+}
+
+/**
+ * PUT /api/profile - create or update the signed-in user's brand profile.
+ *
+ * Args:
+ *   profile: { organization_name, description }.
+ *   getToken: Clerk's useAuth().getToken - see generateBrief.
+ */
+export async function saveBrandProfile(profile, getToken) {
+  if (isDemo()) throw new DemoModeUnavailable()
+
+  const res = await fetch('/api/profile', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders(getToken)) },
+    body: JSON.stringify(profile),
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Saving your profile failed (${res.status}): ${body || res.statusText}`)
+  }
+  return res.json()
+}
+
+/**
+ * GET /api/briefs - the signed-in user's brief history, most recent
+ * first, for the dashboard's "previous briefs" list. Throws
+ * DemoModeUnavailable, without ever calling the network, in demo mode -
+ * see generateBrief's docstring.
+ */
+export async function fetchBriefs(getToken) {
+  if (isDemo()) throw new DemoModeUnavailable()
+
+  const res = await fetch('/api/briefs', { headers: await authHeaders(getToken) })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Fetching your briefs failed (${res.status}): ${body || res.statusText}`)
+  }
+  return res.json()
+}
+
+/**
+ * GET /api/briefs/{id} - one saved brief in full, for clicking back into
+ * a past result from the dashboard's history list.
+ */
+export async function fetchSavedBrief(id, getToken) {
+  if (isDemo()) throw new DemoModeUnavailable()
+
+  const res = await fetch(`/api/briefs/${encodeURIComponent(id)}`, { headers: await authHeaders(getToken) })
+  if (res.status === 404) return null
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Fetching that brief failed (${res.status}): ${body || res.statusText}`)
+  }
+  return res.json()
+}
