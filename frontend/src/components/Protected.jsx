@@ -18,7 +18,10 @@ export default function Protected({ children }) {
   return (
     <>
       <ClerkLoading>
-        <div className="authwait">Checking your session…</div>
+        <div className="authwait">
+          <div className="dots" aria-hidden="true"><i /><i /><i /></div>
+          <span role="status">Checking your session…</span>
+        </div>
       </ClerkLoading>
       <ClerkLoaded>
         <Show when="signed-in">{children}</Show>

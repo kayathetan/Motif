@@ -22,9 +22,14 @@ export default function Choose() {
           <Link className="card tc" to="/market" style={{ display: 'block', padding: '24px 26px' }}>
             <p className="tl" style={{ color: 'var(--purple-deep)' }}>Before you build</p>
             <h4 style={{ marginTop: 8 }}>Read the market first →</h4>
+            {/* Describes what /market actually renders. The previous copy
+                promised attention volume, share of voice and a cost per
+                thousand views - all from the earlier fabricated-data
+                version of that page, none of it present once the page was
+                rewired to real aggregates. */}
             <p style={{ maxWidth: '78ch' }}>
-              Category attention volume, your share of it, what the market is rewarding this quarter, and what a
-              thousand views costs you organically against paid. <b>The brief is judged against these numbers.</b>
+              The dominant format in your category, how fast the hook lands, which content and CTA types the top
+              performers use, and the structural benchmark they hit. <b>The brief is judged against these numbers.</b>
             </p>
           </Link>
         </div>

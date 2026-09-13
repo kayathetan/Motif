@@ -56,11 +56,12 @@ export default function Brief() {
 
         {state.status === 'loading' && (
           <div className="sec" style={{ marginTop: 40 }}>
-            <div className="card" style={{ padding: '48px 40px', textAlign: 'center' }}>
-              <p style={{ fontSize: 15.5, color: 'var(--ink-2)' }}>
+            <div className="card loadcard">
+              <div className="dots" aria-hidden="true"><i /><i /><i /></div>
+              <p className="lmsg" role="status">
                 Reasoning over structural patterns from top-performing {brief.niche} content on {brief.platform}…
               </p>
-              <p style={{ fontSize: 13, color: 'var(--label)', marginTop: 8 }}>Usually takes 10–20 seconds.</p>
+              <p className="lsub">Usually takes 10&ndash;20 seconds.</p>
             </div>
           </div>
         )}

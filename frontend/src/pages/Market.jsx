@@ -80,8 +80,10 @@ export default function Market() {
       <div className="wrap">
         {state.status === 'loading' && (
           <div className="sec" style={{ marginTop: 52 }}>
-            <div className="card" style={{ padding: '48px 40px', textAlign: 'center' }}>
-              <p style={{ fontSize: 15.5, color: 'var(--ink-2)' }}>Aggregating patterns for {brief.niche}…</p>
+            <div className="card loadcard">
+              <div className="dots" aria-hidden="true"><i /><i /><i /></div>
+              <p className="lmsg" role="status">Aggregating patterns for {brief.niche}…</p>
+              <p className="lsub">Reading every stored pattern in the category.</p>
             </div>
           </div>
         )}

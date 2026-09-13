@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ClerkLoaded, Show } from '@clerk/react'
 import ShaderBackground from '../components/ShaderBackground.jsx'
 import Nav from '../components/Nav.jsx'
 import { useBrief } from '../store.jsx'
@@ -171,15 +172,36 @@ export default function Landing() {
             <h4 style={{ fontSize: 36, letterSpacing: '-.04em', marginTop: 14 }}>
               See what your category is actually doing
             </h4>
-            <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
-              Create a demo workspace and run one brief against your own category. No card required, nothing stored.
-            </p>
-            <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <Link className="btn-primary" to="/signup">Create an account →</Link>
-              <Link className="btn-ghost" to="/demo" style={{ alignSelf: 'center' }}>
-                or explore the demo, no sign-up
-              </Link>
-            </p>
+            {/* Asking a signed-in user to "create an account" reads as a
+                bug, so the two states get their own copy and destination.
+                Wrapped in ClerkLoaded so the first paint doesn't flash the
+                signed-out version at someone who is already signed in -
+                Show renders nothing until Clerk resolves, and without the
+                wrapper neither branch would appear during that gap. */}
+            <ClerkLoaded>
+              <Show when="signed-out">
+                <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
+                  Create a demo workspace and run one brief against your own category. No card required, nothing stored.
+                </p>
+                <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <Link className="btn-primary" to="/signup">Create an account →</Link>
+                  <Link className="btn-ghost" to="/demo" style={{ alignSelf: 'center' }}>
+                    or explore the demo, no sign-up
+                  </Link>
+                </p>
+              </Show>
+              <Show when="signed-in">
+                <p style={{ maxWidth: '54ch', margin: '14px auto 0', fontSize: 15.5 }}>
+                  You&apos;re signed in. Pick a workflow and run a brief against your category.
+                </p>
+                <p style={{ marginTop: 28, display: 'flex', gap: 12, justifyContent: 'center' }}>
+                  <Link className="btn-primary" to="/choose">Go to your workspace →</Link>
+                  <Link className="btn-ghost" to="/market" style={{ alignSelf: 'center' }}>
+                    or read the market first
+                  </Link>
+                </p>
+              </Show>
+            </ClerkLoaded>
           </div>
         </div>
       </div>
@@ -190,7 +212,10 @@ export default function Landing() {
           derived from transcript timing across public content in your category.{' '}
           <b>Visual and frame-level analysis is the next phase.</b>
         </p>
-        <Link className="btn-dark" to="/signup">Book a demo →</Link>
+        <ClerkLoaded>
+          <Show when="signed-out"><Link className="btn-dark" to="/signup">Book a demo →</Link></Show>
+          <Show when="signed-in"><Link className="btn-dark" to="/choose">Open Motif →</Link></Show>
+        </ClerkLoaded>
       </div>
     </>
   )

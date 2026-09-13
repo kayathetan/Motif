@@ -298,7 +298,7 @@ a{color:inherit;text-decoration:none}
 /* ---------- choose (single door - was two before the audit flow was
    removed; centered now instead of stuck in a 2-col grid's first slot) --- */
 .doors{display:flex;justify-content:center;margin-top:44px}
-.doors .door{max-width:640px;width:100%}
+.doors .door{width:100%}
 .door{padding:38px;display:block;transition:transform .15s ease,box-shadow .15s ease}
 .door:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(76,29,149,.07),0 20px 48px rgba(76,29,149,.12)}
 .door .dk{font-size:12px;letter-spacing:.01em}
@@ -466,4 +466,31 @@ a{color:inherit;text-decoration:none}
   font-size:12px;font-weight:510;letter-spacing:.01em;
   color:var(--purple-deep);background:var(--accent-wash,#EFF0FB);
   border:1px solid #DCDFF7;border-radius:999px;padding:5px 12px;
+}
+
+/* Loading state for the two routes that wait on a GPT-4o call (Market's
+   aggregate, Brief's generation). Both used to sit as static text with no
+   sign the page was alive through a 5-20s wait. Three staggered dots plus a
+   sweeping top rule: the rule shows indeterminate progress without implying
+   a percentage we cannot know. Motion is removed under
+   prefers-reduced-motion, leaving the dots visible but still. */
+.loadcard{position:relative;overflow:hidden;padding:48px 40px;text-align:center}
+.loadcard::before{content:'';position:absolute;top:0;left:0;height:2px;width:38%;
+  background:linear-gradient(90deg,transparent,var(--purple) 45%,var(--purple-soft));
+  animation:loadsweep 1.55s cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes loadsweep{0%{transform:translateX(-100%)}100%{transform:translateX(363%)}}
+.loadcard .lmsg{font-size:15.5px;color:var(--ink-2)}
+.loadcard .lsub{font-size:13px;color:var(--label);margin-top:7px}
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:20px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--purple-soft);
+  animation:dotpulse 1.25s ease-in-out infinite}
+.dots i:nth-child(2){animation-delay:.16s}
+.dots i:nth-child(3){animation-delay:.32s}
+@keyframes dotpulse{
+  0%,80%,100%{transform:scale(.72);background:var(--purple-soft)}
+  40%{transform:scale(1);background:var(--purple-deep)}
+}
+@media (prefers-reduced-motion:reduce){
+  .loadcard::before{animation:none;width:100%;opacity:.45}
+  .dots i{animation:none;background:var(--purple)}
 }
