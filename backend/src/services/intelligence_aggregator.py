@@ -150,6 +150,14 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
             if known_cta_placements
             else None
         ),
+        # How much evidence cta_after_percent actually rests on, reported
+        # alongside it rather than left for the reader to assume. The
+        # average excludes patterns with no detected CTA (above), so it can
+        # legitimately be one video's value presented next to a CTA-type
+        # breakdown showing most videos have no CTA at all - two true
+        # numbers that read as contradictory without the sample size.
+        "cta_measured_count": len(known_cta_placements),
+        "cta_total_count": total,
     }
 
     all_success_factors = [

@@ -225,6 +225,18 @@ export default function Market() {
                       ? <>{data.structural_benchmark.cta_after_percent}<span className="su">%</span></>
                       : <span style={{ fontSize: 15, color: 'var(--ink-2)' }}>not detected</span>}
                   </p>
+                  {/* The average counts only videos with a detected verbal CTA,
+                      which can be a small fraction of the category - and the
+                      CTA-type chart above often shows most videos have no CTA
+                      at all. Printing the sample size stops those two true
+                      numbers reading as a contradiction. */}
+                  {data.structural_benchmark.cta_measured_count != null && (
+                    <p className="sn">
+                      {data.structural_benchmark.cta_measured_count === 0
+                        ? `no verbal CTA found in ${data.structural_benchmark.cta_total_count}`
+                        : `from ${data.structural_benchmark.cta_measured_count} of ${data.structural_benchmark.cta_total_count} measured`}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

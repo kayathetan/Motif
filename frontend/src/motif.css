@@ -117,7 +117,7 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- hero ---------- */
 .hero{position:relative;z-index:3;text-align:center;padding:84px 24px 0}
-.kick{font-size:11.5px;font-weight:500;letter-spacing:.2em;
+.kick{font-size:11.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
   color:var(--purple-deep)}
 .hero h1{font-size:58px;font-weight:590;letter-spacing:-.045em;line-height:1.0;margin-top:20px;text-wrap:balance}
 .hero h1.sm{font-size:46px}
@@ -132,6 +132,12 @@ a{color:inherit;text-decoration:none}
 
 /* ---------- layout ---------- */
 .wrap{position:relative;z-index:2;max-width:1440px;margin:0 auto;padding:0 44px}
+/* A page whose .wrap is the last element has no .foot to supply bottom
+   space, so its final card ended flush against the document edge -
+   /choose scrolled a total of 4px and the door card read as clipped.
+   Scoped to :last-child so pages that do have a .foot keep their
+   existing spacing rather than gaining a second gap. */
+.wrap:last-child{padding-bottom:88px}
 .sec{margin-top:70px}
 .sec h2{font-size:29px;font-weight:590;letter-spacing:-.038em;margin-bottom:22px}
 .card{background:var(--card);border:1px solid #F0ECF7;border-radius:16px;
@@ -166,7 +172,7 @@ a{color:inherit;text-decoration:none}
 .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 .tc{padding:26px}
-.tc .tl{font-size:12px;letter-spacing:.01em;
+.tc .tl{font-size:11px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--label)}
 .tc h4{font-size:21px;font-weight:590;letter-spacing:-.03em;margin-top:11px;line-height:1.2}
 .tc p{font-size:13.5px;color:var(--ink-2);line-height:1.55;margin-top:10px}
@@ -208,7 +214,7 @@ a{color:inherit;text-decoration:none}
 
 .signals{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 .sig{padding:22px}
-.sig .sl{font-size:11.5px;letter-spacing:.01em;
+.sig .sl{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--label)}
 .sig .sn{font-size:31px;font-weight:590;letter-spacing:-.04em;margin-top:10px;line-height:1;font-variant-numeric:tabular-nums}
 .sig .sb{font-size:12.5px;color:var(--ink-2);margin-top:9px;line-height:1.45}
@@ -251,7 +257,7 @@ a{color:inherit;text-decoration:none}
 .gap.p2 .tagp{background:var(--warn-bg);color:var(--warn)}
 .gap.p3 .tagp{background:var(--good-bg);color:var(--good)}
 .gp h3{font-size:21px;font-weight:590;letter-spacing:-.03em;margin-top:12px;line-height:1.2}
-.gcol .gl{font-size:11px;letter-spacing:.01em;
+.gcol .gl{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--label);margin-bottom:8px}
 .gcol .gv{font-size:14.5px;color:#2C262A;line-height:1.5;font-weight:500}
 .gcol .gv b{font-weight:560;color:var(--ink)}
@@ -301,7 +307,7 @@ a{color:inherit;text-decoration:none}
 .doors .door{width:100%}
 .door{padding:38px;display:block;transition:transform .15s ease,box-shadow .15s ease}
 .door:hover{transform:translateY(-3px);box-shadow:0 4px 10px rgba(76,29,149,.07),0 20px 48px rgba(76,29,149,.12)}
-.door .dk{font-size:12px;letter-spacing:.01em}
+.door .dk{font-size:11px;letter-spacing:.11em;text-transform:uppercase}
 .door.create .dk{color:var(--purple-deep)}
 .door.audit .dk{color:var(--blood-orange)}
 .door h3{font-size:31px;font-weight:590;letter-spacing:-.04em;line-height:1.08;margin-top:14px}
@@ -328,7 +334,7 @@ a{color:inherit;text-decoration:none}
 .three{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:20px}
 .two{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:20px}
 .fc{padding:30px}
-.fc .fk{font-size:12px;letter-spacing:.01em}
+.fc .fk{font-size:11px;letter-spacing:.11em;text-transform:uppercase}
 .fc:nth-child(1) .fk{color:var(--purple-deep)}
 .fc:nth-child(2) .fk{color:var(--blood-orange)}
 .fc:nth-child(3) .fk{color:var(--amber)}
@@ -338,7 +344,7 @@ a{color:inherit;text-decoration:none}
 .steps{display:flex;gap:0;margin-top:24px;align-items:stretch}
 .step{flex:1;padding:24px 26px;border-left:2px solid var(--line)}
 .step:first-child{border-left:2px solid var(--purple-deep)}
-.step .sn{font-size:11px;letter-spacing:.01em;color:var(--label)}
+.step .sn{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--label)}
 .step h4{font-size:17px;font-weight:560;letter-spacing:-.025em;margin-top:10px}
 .step p{font-size:13.5px;color:var(--ink-2);line-height:1.55;margin-top:8px}
 
@@ -367,7 +373,7 @@ a{color:inherit;text-decoration:none}
 .statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .statrow.three{grid-template-columns:repeat(3,1fr)}
 .stat{padding:22px}
-.stat .sl{font-size:11px;letter-spacing:.01em;color:var(--label)}
+.stat .sl{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--label)}
 .stat .sv{font-size:32px;font-weight:590;letter-spacing:-.035em;margin-top:11px;line-height:1;
   font-variant-numeric:tabular-nums}
 .stat .su{font-size:15px;font-weight:510;color:var(--ink-2);margin-left:3px;letter-spacing:-.01em}
@@ -383,7 +389,7 @@ a{color:inherit;text-decoration:none}
 .chartcard{padding:24px 24px 20px}
 .chart-h{display:flex;align-items:baseline;justify-content:space-between;gap:20px;margin-bottom:18px}
 .chart-h h3{font-size:17px;font-weight:510;letter-spacing:-.02em}
-.chart-h .cn{font-size:12px;color:var(--label);letter-spacing:.01em}
+.chart-h .cn{font-size:10.5px;color:var(--label);letter-spacing:.11em;text-transform:uppercase}
 .legend{display:flex;gap:16px;margin-top:16px;padding-top:14px;border-top:1px solid var(--hair)}
 .legend span{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2)}
 .legend i{width:9px;height:9px;border-radius:2px;flex:none}
