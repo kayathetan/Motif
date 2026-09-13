@@ -14,6 +14,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from pipeline.classify_niche import generate_topic_summary
 from pipeline.pattern_extractor import extract_pattern
 from pipeline.store_patterns import store_pattern
 from pipeline.video_processor import download_video, extract_frames
@@ -109,7 +110,16 @@ def process_video(video_url: str, niche: str, platform: str) -> None:
     pattern["hook_delivery_seconds"] = signals["hook_delivery_seconds"]
     pattern["cta_placement_percent"] = signals["cta_placement_percent"]
 
-    store_pattern({**metadata, **pattern})
+    # Best-effort: feeds pipeline/classify_niche.py, not core pattern
+    # quality, so a failure here shouldn't skip an otherwise-good video.
+    try:
+        transcript_text = " ".join(segment["text"] for segment in transcript)
+        topic_summary = generate_topic_summary(metadata["title"], transcript_text)
+    except Exception as exc:  # noqa: BLE001 - classification input is a nice-to-have
+        log.warning("  topic summary unavailable (%s: %s)", type(exc).__name__, exc)
+        topic_summary = None
+
+    store_pattern({**metadata, **pattern, "topic_summary": topic_summary})
     log.info("  stored")
 
 

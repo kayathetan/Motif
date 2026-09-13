@@ -120,7 +120,11 @@ def store_pattern(pattern: dict) -> None:
 
     Args:
         pattern: A dict matching the Pattern schema, plus the video metadata
-            keys from youtube_fetcher.fetch_video_metadata.
+            keys from youtube_fetcher.fetch_video_metadata. May optionally
+            include "topic_summary" (see classify_niche.generate_topic_summary)
+            - if present, it's embedded and stored separately from
+            document/embedding for pipeline.classify_niche.py to use.
+            Nullable in the schema, so omitting it is fine.
     """
     missing = [c for c in _PATTERN_COLUMNS if c not in pattern]
     if missing:
@@ -129,24 +133,27 @@ def store_pattern(pattern: dict) -> None:
     document = build_document(pattern)
     embedding = generate_embedding(document)
 
-    columns = ", ".join((*_PATTERN_COLUMNS, "document", "embedding"))
+    columns = list(_PATTERN_COLUMNS) + ["document", "embedding"]
     # The embedding placeholder is cast explicitly. Without numpy installed,
     # a plain Python list silently binds as double precision[] instead of
     # vector, which has no <=> operator - see the note atop schema.sql.
-    placeholders = ", ".join(["%s"] * len(_PATTERN_COLUMNS) + ["%s", "%s::vector"])
-    updates = ", ".join(
-        f"{c} = excluded.{c}"
-        for c in (*_PATTERN_COLUMNS[1:], "document", "embedding")
-    )
-
+    placeholders = ["%s"] * len(_PATTERN_COLUMNS) + ["%s", "%s::vector"]
     values = [pattern[c] for c in _PATTERN_COLUMNS] + [document, embedding]
+
+    topic_summary = pattern.get("topic_summary")
+    if topic_summary:
+        columns += ["topic_summary", "topic_embedding"]
+        placeholders += ["%s", "%s::vector"]
+        values += [topic_summary, generate_embedding(topic_summary)]
+
+    updates = ", ".join(f"{c} = excluded.{c}" for c in columns[1:])
 
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 f"""
-                insert into patterns ({columns})
-                values ({placeholders})
+                insert into patterns ({', '.join(columns)})
+                values ({', '.join(placeholders)})
                 on conflict (video_url) do update set {updates}
                 """,
                 values,

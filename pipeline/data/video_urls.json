@@ -1,1 +1,16 @@
-{}
+{
+  "skincare": {
+    "youtube_shorts": [
+      "https://www.youtube.com/shorts/PTdH8hwPHTo",
+      "https://www.youtube.com/shorts/30f6B1-JGnI",
+      "https://www.youtube.com/shorts/vkan38u8d-g"
+    ]
+  },
+  "tech": {
+    "youtube_shorts": [
+      "https://www.youtube.com/shorts/Hlqhs-rWR8A",
+      "https://www.youtube.com/shorts/mkcgVN90zl0",
+      "https://www.youtube.com/shorts/lZ8wFJk33Dk"
+    ]
+  }
+}
