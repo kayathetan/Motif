@@ -28,7 +28,12 @@
   --bad:#B3211A;  --bad-bg:#FBEAE6}
 
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+/* overflow-y:scroll (not auto) reserves the scrollbar's width up front -
+   without this, a short page renders with no scrollbar, then whatever
+   pushes it past viewport height (web font swap-in, Clerk's auth UI
+   resolving) makes one appear, and everything centered via margin:0 auto
+   visibly shifts left by the scrollbar's width right after load. */
+html{scroll-behavior:smooth;overflow-y:scroll}
 body{
   background:var(--ground);color:var(--ink);
   font-family:'Inter','SF Pro Display',-apple-system,system-ui,'Segoe UI',Roboto,sans-serif;
@@ -88,7 +93,14 @@ a{color:inherit;text-decoration:none}
   width:29px;height:29px;flex:none;display:block;
   /* the mark is a transparent PNG, so it sits on any ground */
 }
-.nav-links{display:flex;gap:28px}
+/* Absolutely centered rather than a space-between flex child: Clerk's
+   <Show when="signed-in"|"signed-out"> in .nav-right renders nothing
+   until auth state resolves, then pops in "Log in"/"Get started" (or the
+   signed-in buttons) a beat after first paint. With space-between, that
+   width change on the right visibly shifted this whole link group left
+   right after load - positioning it independent of both siblings' widths
+   removes the dependency entirely, not just the timing symptom. */
+.nav-links{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:28px}
 .nav-links a{font-size:14.5px;font-weight:500;letter-spacing:-.01em}
 .nav-links a.on{color:var(--purple-deep);font-weight:510}
 .nav-right{display:flex;gap:9px;align-items:center}
