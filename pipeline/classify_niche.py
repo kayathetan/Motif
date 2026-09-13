@@ -38,6 +38,16 @@ CLASSIFIER_MODEL = os.getenv("CLASSIFIER_MODEL", "gpt-4o-mini")
 HIGH_THRESHOLD = 0.70
 MID_THRESHOLD = 0.55
 
+# A centroid built from only 1-2 examples is narrow, not necessarily
+# unrepresentative - confirmed live: a genuinely correct tech-gadget match
+# scored 0.425 (well below MID) purely because the tech niche's one
+# reference video was a differently-styled multi-gadget roundup rather
+# than a single-product review. Holding a brand-new niche to the same bar
+# as a mature one blocks it from ever growing past its first example.
+# Below this count, both thresholds relax by SPARSE_NICHE_DISCOUNT.
+MATURE_NICHE_SIZE = 3
+SPARSE_NICHE_DISCOUNT = 0.15
+
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
     dot = sum(x * y for x, y in zip(a, b))
@@ -93,7 +103,7 @@ Transcript: {transcript_text}
     return response.output_parsed.topic_summary
 
 
-def compute_niche_centroids() -> dict[str, list[float]]:
+def compute_niche_centroids() -> dict[str, tuple[list[float], int]]:
     """
     Average topic_embedding per niche, computed from every pattern
     currently stored that has one. This is the exemplar a new candidate
@@ -104,8 +114,10 @@ def compute_niche_centroids() -> dict[str, list[float]]:
     see generate_topic_summary()'s docstring for why they can't be mixed.
 
     Returns:
-        {niche: centroid_embedding}. Empty dict if no rows have a
-        topic_embedding yet (e.g. before backfilling older rows).
+        {niche: (centroid_embedding, example_count)}. example_count lets
+        the caller relax thresholds for a niche that's still sparse - see
+        MATURE_NICHE_SIZE. Empty dict if no rows have a topic_embedding
+        yet (e.g. before backfilling older rows).
     """
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         # Without this, the vector column comes back as its raw string
@@ -126,12 +138,13 @@ def compute_niche_centroids() -> dict[str, list[float]]:
         # list, when numpy isn't installed - confirmed live.
         by_niche.setdefault(niche, []).append(embedding.to_list())
 
-    centroids: dict[str, list[float]] = {}
+    centroids: dict[str, tuple[list[float], int]] = {}
     for niche, embeddings in by_niche.items():
         dims = len(embeddings[0])
-        centroids[niche] = [
+        centroid = [
             sum(e[i] for e in embeddings) / len(embeddings) for i in range(dims)
         ]
+        centroids[niche] = (centroid, len(embeddings))
     return centroids
 
 
@@ -195,18 +208,25 @@ def classify_niche(topic_summary: str) -> tuple[str | None, float, str]:
     embedding = generate_embedding(topic_summary)
     scored = sorted(
         (
-            (niche, _cosine_similarity(embedding, centroid))
-            for niche, centroid in centroids.items()
+            (niche, _cosine_similarity(embedding, centroid), count)
+            for niche, (centroid, count) in centroids.items()
         ),
-        key=lambda pair: pair[1],
+        key=lambda triple: triple[1],
         reverse=True,
     )
-    best_niche, best_similarity = scored[0]
+    best_niche, best_similarity, best_count = scored[0]
 
-    if best_similarity >= HIGH_THRESHOLD:
+    # See MATURE_NICHE_SIZE's docstring note: a sparse niche's centroid is
+    # narrow, not necessarily wrong, so it gets a lower bar until it's
+    # grown a few examples.
+    discount = SPARSE_NICHE_DISCOUNT if best_count < MATURE_NICHE_SIZE else 0.0
+    high_threshold = HIGH_THRESHOLD - discount
+    mid_threshold = MID_THRESHOLD - discount
+
+    if best_similarity >= high_threshold:
         return best_niche, best_similarity, "auto"
 
-    if best_similarity >= MID_THRESHOLD:
+    if best_similarity >= mid_threshold:
         if _llm_niche_check(topic_summary, best_niche):
             return best_niche, best_similarity, "llm_confirmed"
         return None, best_similarity, "llm_rejected"

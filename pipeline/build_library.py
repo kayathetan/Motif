@@ -1,5 +1,5 @@
-# Main entry point: orchestrates the full pipeline (fetch -> process ->
-# extract -> store) for every URL in pipeline/data/video_urls.json.
+# Main entry point: orchestrates the full pipeline (fetch -> classify ->
+# process -> extract -> store) for every URL in pipeline/data/video_urls.json.
 # Standalone script — shares the Supabase store with backend/ but has no
 # imports from backend/src/.
 #
@@ -7,6 +7,13 @@
 # Needs OPENAI_API_KEY, YOUTUBE_API_KEY and DATABASE_URL (see
 # backend/.env.example). No system ffmpeg needed - video_processor.py uses
 # imageio-ffmpeg's bundled binary.
+#
+# video_urls.json is a flat list of URLs with no niche attached - niche is
+# determined by pipeline.classify_niche against the niches that already
+# exist in the table, not assigned by the curator. This needs at least one
+# seeded example per niche to classify against (classify_niche returns
+# "no_existing_niches" on an empty table) - it grows an already-seeded
+# library, it doesn't bootstrap one from nothing.
 
 import json
 import logging
@@ -14,7 +21,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from pipeline.classify_niche import generate_topic_summary
+from pipeline.classify_niche import classify_niche, generate_topic_summary
 from pipeline.pattern_extractor import extract_pattern
 from pipeline.store_patterns import store_pattern
 from pipeline.video_processor import download_video, extract_frames
@@ -25,6 +32,7 @@ from pipeline.youtube_fetcher import (
 )
 
 URLS_PATH = Path(__file__).parent / "data" / "video_urls.json"
+DEFAULT_PLATFORM = "youtube_shorts"
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s  %(levelname)-7s %(message)s"
@@ -63,18 +71,30 @@ def _frames_for(video_url: str, duration_seconds: float) -> tuple[list[str], str
         return [], None
 
 
-def process_video(video_url: str, niche: str, platform: str) -> None:
+def process_video(video_url: str, platform: str = DEFAULT_PLATFORM) -> bool:
     """
-    Run one video end to end: metadata -> transcript -> signals -> frames ->
-    pattern -> stored row.
+    Run one video end to end: metadata -> transcript -> signals -> topic
+    classification -> frames -> pattern -> stored row.
+
+    Classification happens before the expensive multimodal step on
+    purpose: metadata + transcript are cheap (a couple of API calls), full
+    pattern extraction is not (frame download + GPT-4o vision). A video
+    with no confident niche match is skipped before paying for that.
 
     Args:
         video_url: Full YouTube video URL.
-        niche: Content niche for this URL, from the JSON structure.
-        platform: One of "tiktok", "reels", "youtube_shorts".
+        platform: One of "tiktok", "reels", "youtube_shorts". Not
+            classified - the URL list is all YouTube Shorts for now, so
+            this just defaults rather than being inferred per video.
+
+    Returns:
+        True if a pattern was stored, False if skipped for lack of a
+        confident niche match (not an error - main() tallies this
+        separately from real failures).
 
     Raises:
-        Whatever the underlying steps raise. main() catches per video.
+        Whatever the underlying steps raise, for a real failure.
+        main() catches per video.
     """
     metadata = fetch_video_metadata(video_url)
     log.info("  %s (%s views)", metadata["title"][:64], f"{metadata['views']:,}")
@@ -90,6 +110,18 @@ def process_video(video_url: str, niche: str, platform: str) -> None:
         signals["words_per_minute_last_third"],
     )
 
+    transcript_text = " ".join(segment["text"] for segment in transcript)
+    topic_summary = generate_topic_summary(metadata["title"], transcript_text)
+    niche, similarity, decision = classify_niche(topic_summary)
+    log.info(
+        "  topic: %s -> niche=%s (similarity %.3f, %s)",
+        topic_summary, niche, similarity, decision,
+    )
+
+    if niche is None:
+        log.info("  skipped - no confident niche match")
+        return False
+
     frame_paths, work_dir = _frames_for(video_url, metadata["duration_seconds"])
     try:
         pattern = extract_pattern(metadata, transcript, signals, frame_paths)
@@ -100,9 +132,10 @@ def process_video(video_url: str, niche: str, platform: str) -> None:
     if not pattern:
         raise RuntimeError("extract_pattern returned nothing")
 
-    # The loop is the authority on these two: the JSON structure says which
-    # niche and platform a URL was collected under, so whatever the LLM
-    # inferred for them is overridden.
+    # classify_niche() is the authority on niche now, not a curator - see
+    # module docstring. Still overriding whatever extract_pattern's own
+    # multimodal read might have guessed, for the same reason as before:
+    # a grounded decision beats an ungrounded one.
     pattern["niche"] = niche
     pattern["platform"] = platform
 
@@ -110,58 +143,52 @@ def process_video(video_url: str, niche: str, platform: str) -> None:
     pattern["hook_delivery_seconds"] = signals["hook_delivery_seconds"]
     pattern["cta_placement_percent"] = signals["cta_placement_percent"]
 
-    # Best-effort: feeds pipeline/classify_niche.py, not core pattern
-    # quality, so a failure here shouldn't skip an otherwise-good video.
-    try:
-        transcript_text = " ".join(segment["text"] for segment in transcript)
-        topic_summary = generate_topic_summary(metadata["title"], transcript_text)
-    except Exception as exc:  # noqa: BLE001 - classification input is a nice-to-have
-        log.warning("  topic summary unavailable (%s: %s)", type(exc).__name__, exc)
-        topic_summary = None
-
     store_pattern({**metadata, **pattern, "topic_summary": topic_summary})
     log.info("  stored")
+    return True
 
 
 def main() -> None:
     """
-    Load pipeline/data/video_urls.json and, for every niche/platform/URL,
-    run youtube_fetcher -> video_processor -> pattern_extractor ->
-    store_patterns. Logs progress per video and skips failures gracefully.
+    Load pipeline/data/video_urls.json (a flat list of URLs) and run
+    youtube_fetcher -> classify_niche -> video_processor -> pattern_extractor
+    -> store_patterns for each. Logs progress per video, skips a video with
+    no confident niche match, and skips (rather than aborts) a real failure.
     """
     if not URLS_PATH.exists():
         log.error("No URL list at %s", URLS_PATH)
         return
 
-    catalogue: dict[str, dict[str, list[str]]] = json.loads(
-        URLS_PATH.read_text()
-    )
-    if not catalogue:
+    urls: list[str] = json.loads(URLS_PATH.read_text())
+    if not urls:
         log.warning("%s is empty — nothing to build", URLS_PATH.name)
         return
 
-    total = sum(
-        len(urls) for platforms in catalogue.values() for urls in platforms.values()
-    )
-    log.info("Building pattern library from %d video(s)", total)
+    log.info("Building pattern library from %d video(s)", len(urls))
 
-    done = 0
+    stored = 0
+    unclassified: list[str] = []
     failed: list[tuple[str, str]] = []
 
-    for niche, platforms in catalogue.items():
-        for platform, urls in platforms.items():
-            for video_url in urls:
-                log.info("[%s / %s] %s", niche, platform, video_url)
-                try:
-                    process_video(video_url, niche, platform)
-                    done += 1
-                except Exception as exc:  # noqa: BLE001 - one bad video is not fatal
-                    log.error("  skipped (%s: %s)", type(exc).__name__, exc)
-                    failed.append((video_url, f"{type(exc).__name__}: {exc}"))
+    for video_url in urls:
+        log.info("%s", video_url)
+        try:
+            if process_video(video_url):
+                stored += 1
+            else:
+                unclassified.append(video_url)
+        except Exception as exc:  # noqa: BLE001 - one bad video is not fatal
+            log.error("  skipped (%s: %s)", type(exc).__name__, exc)
+            failed.append((video_url, f"{type(exc).__name__}: {exc}"))
 
-    log.info("Done: %d stored, %d skipped", done, len(failed))
+    log.info(
+        "Done: %d stored, %d unclassified, %d failed",
+        stored, len(unclassified), len(failed),
+    )
+    for video_url in unclassified:
+        log.info("  no confident niche match: %s", video_url)
     for video_url, reason in failed:
-        log.info("  skipped %s — %s", video_url, reason)
+        log.info("  failed %s — %s", video_url, reason)
 
 
 if __name__ == "__main__":
