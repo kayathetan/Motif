@@ -45,7 +45,11 @@ class Pattern(BaseModel):
     reveal_order: str
     payoff_seconds: float
     cta_type: str
-    cta_placement_percent: float
+    # None, not a number, when no verbal/on-screen CTA phrase was detected
+    # in the transcript - see youtube_fetcher.compute_structural_signals.
+    # A silently-defaulted 0.0 previously corrupted structural_benchmark's
+    # cta_after_percent average (confirmed live).
+    cta_placement_percent: float | None
     pacing: str
     emotional_trigger: str
     success_factors: list[str]

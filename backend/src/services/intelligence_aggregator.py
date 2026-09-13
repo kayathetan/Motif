@@ -114,6 +114,17 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
     # coerces that for us the way NicheIntelligenceResponse's typed float
     # fields do - confirmed live: without float() here, these serialise as
     # JSON strings ("1.2") instead of numbers (1.2).
+    # cta_placement_percent is None (not 0) when no CTA phrase was
+    # detected for a pattern - see youtube_fetcher.py. Averaging None in
+    # as 0 would silently claim "top performers front-load their CTA"
+    # when the real story is "detection found nothing" for some of them -
+    # exclude those instead of counting them as zero.
+    known_cta_placements = [
+        float(p["cta_placement_percent"])
+        for p in patterns
+        if p["cta_placement_percent"] is not None
+    ]
+
     structural_benchmark = {
         "hook_under_seconds": round(
             float(max(p["hook_delivery_seconds"] for p in patterns)), 1
@@ -121,8 +132,10 @@ def aggregate_intelligence(patterns: list[dict]) -> NicheIntelligenceResponse:
         "payoff_before_seconds": round(
             float(sum(p["payoff_seconds"] for p in patterns)) / total, 1
         ),
-        "cta_after_percent": round(
-            float(sum(p["cta_placement_percent"] for p in patterns)) / total, 1
+        "cta_after_percent": (
+            round(sum(known_cta_placements) / len(known_cta_placements), 1)
+            if known_cta_placements
+            else None
         ),
     }
 

@@ -69,7 +69,13 @@ For each field:
   transcript keyword - use the frames' relative position for this judgment.
 - cta_type: the category of call to action (e.g. "follow", "shop_now",
   "comment", "share", "visit_link", "save"). Pick the closest category,
-  don't invent a new one unless truly nothing fits.
+  don't invent a new one unless truly nothing fits. Use "none" if the
+  video ends without any actual ask - spoken, on-screen text, or a clear
+  visual prompt (an end card, a button). Do not default to a common
+  category like "follow" or "subscribe" just because it's a typical CTA
+  for this kind of content - confirmed by direct review that this
+  produces false positives with zero basis in what's actually shown.
+  Only report a type you can point to a specific moment for.
 - pacing: overall pacing (e.g. "fast", "medium", "slow").
 - emotional_trigger: the primary emotional mechanism driving engagement
   (e.g. "curiosity", "surprise", "validation", "aspiration", "urgency").

@@ -83,8 +83,15 @@ def build_document(pattern: dict) -> str:
             f"Information is revealed {pattern['reveal_order']}, with the payoff"
             f" at {pattern['payoff_seconds']} seconds.",
             f"Pacing is {pattern['pacing']}.",
-            f"The call to action is {pattern['cta_type']}, placed"
-            f" {pattern['cta_placement_percent']}% through.",
+            (
+                f"The call to action is {pattern['cta_type']}, placed"
+                f" {pattern['cta_placement_percent']}% through."
+                if pattern.get("cta_placement_percent") is not None
+                # None means no CTA phrase was detected in the transcript,
+                # not "placed at 0%" - see youtube_fetcher.py.
+                else f"The call to action is {pattern['cta_type']};"
+                " no verbal CTA timing was detected."
+            ),
             f"The emotional trigger is {pattern['emotional_trigger']}.",
             f"It works because: {'; '.join(factors)}." if factors else "",
         ]

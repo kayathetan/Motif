@@ -38,7 +38,9 @@ create table if not exists patterns (
     reveal_order text not null,
     payoff_seconds numeric not null,
     cta_type text not null,
-    cta_placement_percent numeric not null,
+    -- null, not 0, when no CTA phrase was detected in the transcript -
+    -- see the note in pipeline/youtube_fetcher.py::compute_structural_signals.
+    cta_placement_percent numeric,
     pacing text not null,
     emotional_trigger text not null,
     success_factors text[] not null,

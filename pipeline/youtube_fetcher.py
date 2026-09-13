@@ -189,7 +189,7 @@ def compute_structural_signals(
     if not transcript or duration_seconds <= 0:
         return {
             "hook_delivery_seconds": 0.0,
-            "cta_placement_percent": 0.0,
+            "cta_placement_percent": None,
             "words_per_minute_first_third": 0.0,
             "words_per_minute_middle_third": 0.0,
             "words_per_minute_last_third": 0.0,
@@ -214,7 +214,15 @@ def compute_structural_signals(
             break
 
     # --- CTA: where the first call to action appears -----------------------
-    cta_placement_percent = 0.0
+    # None, not 0.0, when no phrase matches - confirmed live that this was
+    # previously indistinguishable from "the CTA opens the video", which
+    # silently corrupted structural_benchmark.cta_after_percent (multiple
+    # stored patterns had no verbal CTA at all, yet averaged in as 0%,
+    # implying "top performers front-load their CTA" when the real story
+    # was "detection found nothing"). A video can still have a real,
+    # visible-only CTA (an end card, an on-screen button) that this
+    # phrase-matching can't see - None honestly says "unknown", not "zero".
+    cta_placement_percent = None
     for segment in transcript:
         text = segment["text"].lower()
         if any(phrase in text for phrase in _CTA_PHRASES):
