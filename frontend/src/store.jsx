@@ -35,8 +35,8 @@ const initial = {
     'This should read as a genuine three-week before-and-after from a real customer, not a product ad. ' +
     'Quiet and credible, closer to a testimonial than a campaign. The product can appear but must not lead.',
   topic: 'our new hydrating serum launch',
-  tone: [],
-  resources: [],
+  tone: ['Warm, personal'],
+  resources: ['Phone only', 'Natural window light', 'Ring light', 'Tripod', 'A camera operator', 'Second location'],
   duration: '0:45'
 }
 
