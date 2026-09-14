@@ -64,6 +64,12 @@ backend/    FastAPI server — brief generation & niche intelligence
 pipeline/   builds the pattern library that both of the above read from
 ```
 
+See [`motif_backend_pipelines.drawio`](./motif_backend_pipelines.drawio) for
+the full architecture diagram — ingestion, retrieval, and the serving API,
+with the actual data flowing between them. Open it at
+[app.diagrams.net](https://app.diagrams.net/) (File → Open From → Device) or
+with the draw.io extension in VS Code.
+
 <details>
 <summary><b>How the pattern library gets built (and why it's small right now)</b></summary>
 
